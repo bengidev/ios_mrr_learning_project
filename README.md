@@ -1,116 +1,152 @@
-# iOS MRR Learning Project
+# MVVM-C Pattern with Deep Linking - MRR Version
 
-A hands-on learning project for understanding **Manual Retain-Release (MRR)** memory management in Objective-C, the predecessor to ARC (Automatic Reference Counting).
+A complete implementation of the MVVM-C (Model-View-ViewModel-Coordinator) pattern with deep linking support for **MRR (Manual Retain-Release)** Objective-C projects.
 
-> ⚠️ **Educational Purpose Only**: This project uses pre-ARC memory management patterns for learning. Apple requires iOS 15+ for new App Store submissions, so this is not intended for production use.
+## ⚠️ Important: Compiler Flag Required
 
-## 📚 What You'll Learn
+All source files in this project **MUST** be compiled with the `-fno-objc-arc` flag to disable ARC.
 
-### Memory Management Fundamentals
-- **Reference Counting**: How iOS tracks object ownership
-- **`retain`**: Claiming ownership of an object
-- **`release`**: Relinquishing ownership
-- **`autorelease`**: Delayed release mechanism
-- **`dealloc`**: Object cleanup before deallocation
+### Xcode Configuration
+
+1. Select target → Build Phases → Compile Sources
+2. For each `.m` file, add compiler flag: `-fno-objc-arc`
+
+Or for the entire target:
+- Build Settings → Other C Flags → Add `-fno-objc-arc`
+
+## Project Structure
+
+```
+MVVM-C-MRR/
+├── Protocols/
+│   ├── Coordinator.h          # Base coordinator protocol (retain/assign)
+│   └── DeepLinkable.h         # Deep link handling protocol
+├── Routing/
+│   ├── DeepLinkRoute.h/m      # Parsed URL route model
+│   └── URLRouter.h/m          # URL parsing and routing
+├── Coordinators/
+│   ├── BaseCoordinator.h/m    # Base coordinator class
+│   ├── AppCoordinator.h/m     # Root app coordinator
+│   ├── ProductsCoordinator.h/m
+│   └── ProductDetailCoordinator.h/m
+├── ViewModels/
+│   ├── ProductListViewModel.h/m
+│   └── ProductDetailViewModel.h/m
+├── ViewControllers/
+│   ├── ProductListViewController.h/m
+│   └── ProductDetailViewController.h/m
+└── Models/
+    └── Product.h/m
+```
+
+## Integration
+
+### AppDelegate Setup
+
+```objc
+// AppDelegate.m - Compile with -fno-objc-arc
+#import "AppCoordinator.h"
+
+@interface AppDelegate () {
+    AppCoordinator *_appCoordinator;
+}
+@end
+
+@implementation AppDelegate
+
+- (BOOL)application:(UIApplication *)application 
+    didFinishLaunchingWithOptions:(NSDictionary *)launchOptions {
+    
+    UIWindow *window = [[UIWindow alloc] initWithFrame:UIScreen.mainScreen.bounds];
+    
+    _appCoordinator = [[AppCoordinator alloc] initWithWindow:window];
+    [_appCoordinator start];
+    
+    [window release]; // AppCoordinator retained it
+    
+    return YES;
+}
+
+- (BOOL)application:(UIApplication *)app openURL:(NSURL *)url options:(NSDictionary *)options {
+    return [_appCoordinator handleDeepLinkURL:url];
+}
+
+- (void)dealloc {
+    [_appCoordinator release];
+    [super dealloc];
+}
+
+@end
+```
+
+## MRR Memory Management Rules
 
 ### Property Attributes
-| MRR Attribute | Purpose |
-|---------------|---------|
-| `retain` | Object ownership (increases retain count) |
-| `assign` | Primitives or weak references |
-| `copy` | Create owned copy of object |
 
-### Design Patterns
-- **MVC** (Model-View-Controller)
-- **Delegate Pattern** with proper memory management
-- **Singleton Pattern** in MRR
-- **Notification Center** usage and cleanup
+| Relationship | ARC | MRR |
+|-------------|-----|-----|
+| Parent → Child | `strong` | `retain` |
+| Child → Parent | `weak` | `assign` |
+| Delegate | `weak` | `assign` |
+| Strings | `copy` | `copy` |
 
-## 🛠 Project Setup
+### Critical MRR Patterns
 
-### Requirements
-- Xcode 15+ (or latest version)
-- macOS Sonoma or later
-- iOS Simulator
-
-### Building
-1. Open `MRR Project.xcodeproj` in Xcode
-2. Select iOS Simulator target
-3. Build and Run (⌘R)
-
-### ARC is Disabled
-This project has **Objective-C Automatic Reference Counting** set to **NO** in Build Settings, enabling manual memory management.
-
-## 📖 Code Examples
-
-### Basic Retain/Release
 ```objc
-// Creating an object (retain count = 1)
-NSString *name = [[NSString alloc] initWithString:@"Hello"];
-
-// Retaining (retain count = 2)
-[name retain];
-
-// Releasing (retain count = 1)
-[name release];
-
-// Final release (retain count = 0 → deallocated)
-[name release];
-```
-
-### Property Declaration
-```objc
-@interface Person : NSObject
-@property (nonatomic, retain) NSString *name;
-@property (nonatomic, assign) NSInteger age;
-@end
-
-@implementation Person
+// 1. Always implement dealloc
 - (void)dealloc {
-    [_name release];  // Must release retained properties!
-    [super dealloc];  // Must call super
+    [_myRetainedProperty release];
+    // Do NOT release assign properties
+    [super dealloc];
 }
-@end
-```
 
-### Autorelease
-```objc
-- (NSString *)fullName {
-    NSString *result = [[NSString alloc] initWithFormat:@"%@ %@", 
-                        self.firstName, self.lastName];
-    return [result autorelease];  // Caller doesn't need to release
+// 2. Setter pattern for retain properties
+- (void)setMyProperty:(MyClass *)value {
+    if (_myProperty != value) {
+        [_myProperty release];
+        _myProperty = [value retain];
+    }
+}
+
+// 3. Setter pattern for copy properties
+- (void)setMyString:(NSString *)value {
+    if (_myString != value) {
+        [_myString release];
+        _myString = [value copy];
+    }
+}
+
+// 4. Factory methods return autoreleased objects
++ (id)objectWithValue:(id)value {
+    return [[[self alloc] initWithValue:value] autorelease];
+}
+
+// 5. Async block survival
+- (void)asyncOperation {
+    [self retain]; // Keep alive during async
+    dispatch_async(queue, ^{
+        // ... work ...
+        [self release]; // Balance the retain
+    });
 }
 ```
 
-## 📁 Project Structure
+### Avoid Blocks for Cross-Component Communication
 
+In MRR, prefer **delegates** over blocks for coordinator-viewmodel communication. Blocks capture variables and complicate memory management.
+
+## Supported Deep Links
+
+| URL | Action |
+|-----|--------|
+| `myapp://products` | Shows product list |
+| `myapp://products/123` | Shows product 123 |
+| `myapp://products/123/reviews` | Shows reviews |
+| `myapp://profile` | Shows user profile |
+| `myapp://settings` | Shows settings |
+
+## Testing
+
+```bash
+xcrun simctl openurl booted "myapp://products/101/reviews"
 ```
-MRR Project/
-├── AppDelegate.h/m      # Application lifecycle
-├── ViewController.h/m   # Main view controller
-├── Models/              # Data models with MRR
-├── Services/            # Service classes with delegate patterns
-└── Supporting Files/    # Resources and configuration
-```
-
-## 🔍 Memory Management Rules
-
-### The Golden Rules
-1. **If you `alloc`, `new`, `copy`, or `mutableCopy`** → you must `release`
-2. **If you `retain`** → you must `release`
-3. **If you receive from other methods** → don't release (unless you retained)
-
-### Common Pitfalls
-- ❌ Forgetting to release in `dealloc`
-- ❌ Over-releasing (double release → crash)
-- ❌ Using `retain` for delegates (causes retain cycles)
-- ❌ Forgetting to call `[super dealloc]`
-
-## 📝 License
-
-This project is for educational purposes. Feel free to use and modify for learning.
-
-## 🙏 Acknowledgments
-
-- Apple's [Memory Management Programming Guide](https://developer.apple.com/library/archive/documentation/Cocoa/Conceptual/MemoryMgmt/Articles/MemoryMgmt.html)
-- The iOS development community for preserving MRR knowledge
