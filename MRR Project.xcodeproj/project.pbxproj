@@ -20,6 +20,7 @@
 		AAA00003000 /* ViewController.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = ViewController.m; sourceTree = "<group>"; };
 		AAA00003002 /* ViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ViewController.h; sourceTree = "<group>"; };
 		AAA00004000 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		EC7907102F027F87000070AA /* Coordinator.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = Coordinator.h; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -44,12 +45,10 @@
 		AAA00011000 /* MRR Project */ = {
 			isa = PBXGroup;
 			children = (
-				AAA00002002 /* AppDelegate.h */,
-				AAA00002000 /* AppDelegate.m */,
+				EC79070F2F027F74000070AA /* Protocols */,
+				EC79070D2F027923000070AA /* App */,
 				AAA00003002 /* ViewController.h */,
 				AAA00003000 /* ViewController.m */,
-				AAA00001000 /* main.m */,
-				AAA00004000 /* Info.plist */,
 			);
 			path = "MRR Project";
 			sourceTree = "<group>";
@@ -60,6 +59,25 @@
 				AAA00000000 /* MRR Project.app */,
 			);
 			name = Products;
+			sourceTree = "<group>";
+		};
+		EC79070D2F027923000070AA /* App */ = {
+			isa = PBXGroup;
+			children = (
+				AAA00002002 /* AppDelegate.h */,
+				AAA00002000 /* AppDelegate.m */,
+				AAA00001000 /* main.m */,
+				AAA00004000 /* Info.plist */,
+			);
+			path = App;
+			sourceTree = "<group>";
+		};
+		EC79070F2F027F74000070AA /* Protocols */ = {
+			isa = PBXGroup;
+			children = (
+				EC7907102F027F87000070AA /* Coordinator.h */,
+			);
+			path = Protocols;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -263,7 +281,7 @@
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = 2N64875GLV;
 				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_FILE = "MRR Project/Info.plist";
+				INFOPLIST_FILE = "MRR Project/App/Info.plist";
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UIRequiredDeviceCapabilities = armv7;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations = UIInterfaceOrientationPortrait;
@@ -292,7 +310,7 @@
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = 2N64875GLV;
 				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_FILE = "MRR Project/Info.plist";
+				INFOPLIST_FILE = "MRR Project/App/Info.plist";
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UIRequiredDeviceCapabilities = armv7;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations = UIInterfaceOrientationPortrait;

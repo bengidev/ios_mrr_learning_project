@@ -49,6 +49,7 @@
     title.text = @"MRR Learning Project";
     title.font = [UIFont boldSystemFontOfSize:24.0];
     title.textColor = [UIColor blackColor];
+    title.backgroundColor = [UIColor systemOrangeColor];
     title.textAlignment = NSTextAlignmentCenter;
     title.translatesAutoresizingMaskIntoConstraints = NO;
     [self.view addSubview:title];
@@ -83,11 +84,9 @@
           constraintEqualToAnchor:self.view.safeAreaLayoutGuide.topAnchor
                          constant:60.0],
          [self.titleLabel.leadingAnchor
-          constraintGreaterThanOrEqualToAnchor:self.view.leadingAnchor
-                                      constant:20.0],
+          constraintEqualToAnchor:self.view.leadingAnchor constant:10.0],
          [self.titleLabel.trailingAnchor
-          constraintLessThanOrEqualToAnchor:self.view.trailingAnchor
-                                   constant:-20.0]
+          constraintEqualToAnchor:self.view.trailingAnchor constant:-10.0]
     ]];
 
     // Description constraints

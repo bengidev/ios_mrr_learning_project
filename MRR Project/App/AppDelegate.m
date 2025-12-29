@@ -24,11 +24,9 @@
 
 #pragma mark - UIApplicationDelegate
 
-- (BOOL)              application:(UIApplication *)application
-    didFinishLaunchingWithOptions:(NSDictionary *)launchOptions {
+- (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions {
     // Create the main window programmatically
-    self.window = [[[UIWindow alloc] initWithFrame:[[UIScreen mainScreen] bounds]]
-                   autorelease];
+    self.window = [[[UIWindow alloc] initWithFrame:[[UIScreen mainScreen] bounds]]autorelease];
 
     // Create the root view controller
     self.viewController = [[[ViewController alloc] init] autorelease];
