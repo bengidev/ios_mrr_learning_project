@@ -21,6 +21,9 @@ NS_ASSUME_NONNULL_BEGIN
 /// Starts the coordinator flow
 - (void)start;
 
+/// Ends the coordinator flow
+- (void)finish;
+
 @optional
 /// Reference to parent coordinator (should be weak to avoid retain cycles)
 @property (nonatomic, assign, nullable) id<Coordinator> parentCoordinator;

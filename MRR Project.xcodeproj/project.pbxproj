@@ -10,6 +10,7 @@
 		AAA00001001 /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = AAA00001000 /* main.m */; };
 		AAA00002001 /* AppDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = AAA00002000 /* AppDelegate.m */; };
 		AAA00003001 /* ViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = AAA00003000 /* ViewController.m */; };
+		EC7907152F0376A7000070AA /* BaseCoordinator.m in Sources */ = {isa = PBXBuildFile; fileRef = EC7907142F0376A7000070AA /* BaseCoordinator.m */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -21,6 +22,8 @@
 		AAA00003002 /* ViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ViewController.h; sourceTree = "<group>"; };
 		AAA00004000 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		EC7907102F027F87000070AA /* Coordinator.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = Coordinator.h; sourceTree = "<group>"; };
+		EC7907132F0376A7000070AA /* BaseCoordinator.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = BaseCoordinator.h; sourceTree = "<group>"; };
+		EC7907142F0376A7000070AA /* BaseCoordinator.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = BaseCoordinator.m; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -45,7 +48,7 @@
 		AAA00011000 /* MRR Project */ = {
 			isa = PBXGroup;
 			children = (
-				EC79070F2F027F74000070AA /* Protocols */,
+				EC7907112F037683000070AA /* Core */,
 				EC79070D2F027923000070AA /* App */,
 				AAA00003002 /* ViewController.h */,
 				AAA00003000 /* ViewController.m */,
@@ -78,6 +81,24 @@
 				EC7907102F027F87000070AA /* Coordinator.h */,
 			);
 			path = Protocols;
+			sourceTree = "<group>";
+		};
+		EC7907112F037683000070AA /* Core */ = {
+			isa = PBXGroup;
+			children = (
+				EC7907122F037689000070AA /* Base */,
+				EC79070F2F027F74000070AA /* Protocols */,
+			);
+			path = Core;
+			sourceTree = "<group>";
+		};
+		EC7907122F037689000070AA /* Base */ = {
+			isa = PBXGroup;
+			children = (
+				EC7907132F0376A7000070AA /* BaseCoordinator.h */,
+				EC7907142F0376A7000070AA /* BaseCoordinator.m */,
+			);
+			path = Base;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -150,6 +171,7 @@
 				AAA00001001 /* main.m in Sources */,
 				AAA00002001 /* AppDelegate.m in Sources */,
 				AAA00003001 /* ViewController.m in Sources */,
+				EC7907152F0376A7000070AA /* BaseCoordinator.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
