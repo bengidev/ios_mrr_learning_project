@@ -1,0 +1,52 @@
+# Clang-Format Configuration for Objective-C
+# Based on Apple's coding style
+
+Language: ObjC
+BasedOnStyle: LLVM
+
+# Indentation
+IndentWidth: 4
+TabWidth: 4
+UseTab: Never
+ObjCBlockIndentWidth: 4
+
+# Objective-C specific
+ObjCSpaceAfterProperty: true
+ObjCSpaceBeforeProtocolList: true
+ObjCBinPackProtocolList: Never
+
+# Braces and blocks
+BreakBeforeBraces: Attach
+AllowShortBlocksOnASingleLine: Empty
+AllowShortFunctionsOnASingleLine: Empty
+AllowShortIfStatementsOnASingleLine: Never
+AllowShortLoopsOnASingleLine: false
+
+# Line width
+ColumnLimit: 120
+
+# Alignment
+AlignAfterOpenBracket: Align
+AlignConsecutiveAssignments: false
+AlignConsecutiveDeclarations: false
+AlignOperands: true
+AlignTrailingComments: true
+
+# Spacing
+SpaceAfterCStyleCast: false
+SpaceBeforeAssignmentOperators: true
+SpaceBeforeParens: ControlStatements
+SpacesInContainerLiterals: true
+SpacesInParentheses: false
+SpacesInSquareBrackets: false
+
+# Method declarations
+BinPackArguments: false
+BinPackParameters: false
+
+# Keep includes sorted
+SortIncludes: true
+IncludeBlocks: Preserve
+
+# Pointer alignment
+PointerAlignment: Right

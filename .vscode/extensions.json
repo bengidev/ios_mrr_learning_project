@@ -1,0 +1,7 @@
+{
+  "recommendations": [
+    "sswg.swift-lang",
+    "llvm-vs-code-extensions.vscode-clangd",
+    "ms-vscode.cpptools"
+  ]
+}
