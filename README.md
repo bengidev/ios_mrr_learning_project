@@ -21,7 +21,7 @@ A hands-on learning project for understanding **Manual Retain-Release (MRR)** me
 | `copy` | Create owned copy of object |
 
 ### Design Patterns
-- **MVC** (Model-View-Controller)
+- **MVVM** (Model-View-ViewModel)
 - **Delegate Pattern** with proper memory management
 - **Singleton Pattern** in MRR
 - **Notification Center** usage and cleanup
@@ -109,6 +109,625 @@ MRR Project/
 ## 📝 License
 
 This project is for educational purposes. Feel free to use and modify for learning.
+
+Learn concurrent programming patterns using GCD with both MRR and ARC implementations.
+
+### Key Concepts
+
+| Concept | Description |
+|---------|-------------|
+| **Serial Queue** | Tasks execute one at a time, in order |
+| **Concurrent Queue** | Tasks execute in parallel (simultaneously) |
+| **Dispatch Group** | Wait for multiple tasks to complete |
+| **Main Queue** | Serial queue for UI updates |
+
+### Sequential vs Parallel Execution
+
+```objc
+// SEQUENTIAL - Tasks run one after another (~1.0s for 10 tasks)
+dispatch_queue_t serial = dispatch_queue_create("com.app.serial", DISPATCH_QUEUE_SERIAL);
+for (int i = 0; i < 10; i++) {
+    dispatch_async(serial, ^{
+        sleep(0.1);  // Total: ~1.0s
+    });
+}
+
+// PARALLEL - Tasks run simultaneously (~0.1s for 10 tasks)
+dispatch_queue_t concurrent = dispatch_queue_create("com.app.concurrent", DISPATCH_QUEUE_CONCURRENT);
+for (int i = 0; i < 10; i++) {
+    dispatch_async(concurrent, ^{
+        sleep(0.1);  // Total: ~0.1s
+    });
+}
+```
+
+### MRR vs ARC Memory in GCD
+
+| Aspect | MRR | ARC |
+|--------|-----|-----|
+| `dispatch_queue_create` | Returns retained queue (must `dispatch_release`) | Auto-released |
+| `dispatch_group_create` | Returns retained group (must `dispatch_release`) | Auto-released |
+| Blocks with objects | Need `Block_copy`/`Block_release` | Auto-managed |
+| Captured objects | Must `retain` for async blocks | Auto-retained |
+
+### MRR Example: Parallel Execution
+
+```objc
+dispatch_queue_t queue = dispatch_queue_create("com.app.concurrent", DISPATCH_QUEUE_CONCURRENT);
+dispatch_group_t group = dispatch_group_create();
+
+// Task 1
+dispatch_group_enter(group);
+dispatch_async(queue, ^{
+    // Do work...
+    dispatch_group_leave(group);
+});
+
+// Task 2
+dispatch_group_enter(group);
+dispatch_async(queue, ^{
+    // Do work...
+    dispatch_group_leave(group);
+});
+
+// Called when ALL tasks complete
+dispatch_group_notify(group, dispatch_get_main_queue(), ^{
+    // All done!
+});
+
+// Release resources (MRR only)
+dispatch_release(group);
+dispatch_release(queue);
+```
+
+### ARC Example: Same Pattern (Simpler)
+
+```objc
+dispatch_queue_t queue = dispatch_queue_create("com.app.concurrent", DISPATCH_QUEUE_CONCURRENT);
+dispatch_group_t group = dispatch_group_create();
+
+// Same tasks... but NO need to release queue/group
+dispatch_group_notify(group, dispatch_get_main_queue(), ^{
+    // All done!
+});
+// ARC handles cleanup automatically
+```
+
+### Practical Pattern: Parallel Data Fetch
+
+```objc
+// Fetch user, posts, and friends simultaneously
+- (void)fetchUserDataWithCompletion:(void (^)(NSDictionary *))completion {
+    dispatch_group_t group = dispatch_group_create();
+    NSMutableDictionary *data = [NSMutableDictionary dictionary];
+    NSLock *lock = [[NSLock alloc] init];
+
+    // Fetch user (MRR: data and lock retained by blocks)
+    dispatch_group_enter(group);
+    dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
+        // Simulate network...
+        [lock lock];
+        data[@"user"] = userInfo;
+        [lock unlock];
+        dispatch_group_leave(group);
+    });
+
+    // Fetch posts...
+    dispatch_group_enter(group);
+    dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
+        // Simulate network...
+        [lock lock];
+        data[@"posts"] = posts;
+        [lock unlock];
+        dispatch_group_leave(group);
+    });
+
+    dispatch_group_notify(group, dispatch_get_main_queue(), ^{
+        completion([data copy]);  // Return immutable copy
+        // MRR: [data release]; [lock release];
+    });
+}
+```
+
+### Thread Safety with Locks
+
+```objc
+NSLock *lock = [[NSLock alloc] init];
+NSMutableArray *results = [NSMutableArray array];
+
+dispatch_async(concurrentQueue, ^{
+    [lock lock];
+    [results addObject:@(result)];
+    [lock unlock];
+});
+
+// MRR: [lock release];
+```
+
+### When to Use Each
+
+| Pattern | Use Case |
+|---------|----------|
+| **Serial Queue** | Ordered operations, UI updates, consistency |
+| **Concurrent Queue** | Independent tasks, parallel computations |
+| **dispatch_get_main_queue()** | UI updates only |
+| **dispatch_get_global_queue()** | Background work, parallel operations |
+
+### Files Reference
+
+```
+MRR Project/Threading/
+├── ARC/                    # Automatic Reference Counting
+│   ├── ParallelThreadManager_ARC
+│   ├── SequentialThreadManager_ARC
+│   └── PerformanceComparison_ARC
+└── MRR/                    # Manual Retain Release
+    ├── ParallelThreadManager_MRR
+    ├── SequentialThreadManager_MRR
+    └── PerformanceComparison_MRR
+```
+
+---
+
+# 🎓 Threading Learning Guide: MRR vs ARC
+
+## Table of Contents
+1. [Sequential vs Parallel Execution](#sequential-vs-parallel-execution)
+2. [GCD Basics](#gcd-basics)
+3. [Memory Management Comparison](#memory-management-comparison)
+4. [Performance Comparison](#performance-comparison)
+5. [Practical Patterns](#practical-patterns)
+6. [Quick Reference Card](#quick-reference-card)
+
+---
+
+## 1️⃣ Sequential vs Parallel Execution
+
+### What's the Difference?
+
+| Sequential | Parallel |
+|------------|----------|
+| Tasks run **one after another** | Tasks run **at the same time** |
+| Task 1 → Task 2 → Task 3 | All tasks start together |
+| Slower but predictable | Faster but requires thread safety |
+
+### Simple Example
+
+```objc
+// SEQUENTIAL: Each task waits for the previous one
+- (void)sequentialExample {
+    NSLog(@"Start Task 1");
+    [self doTask1];  // Takes 1 second
+    NSLog(@"Start Task 2");
+    [self doTask2];  // Takes 1 second
+    NSLog(@"Start Task 3");
+    [self doTask3];  // Takes 1 second
+    // Total: ~3 seconds
+}
+
+// PARALLEL: All tasks run at once
+- (void)parallelExample {
+    dispatch_async(dispatch_get_global_queue(0, 0), ^{
+        [self doTask1];  // Takes 1 second
+    });
+    dispatch_async(dispatch_get_global_queue(0, 0), ^{
+        [self doTask2];  // Takes 1 second
+    });
+    dispatch_async(dispatch_get_global_queue(0, 0), ^{
+        [self doTask3];  // Takes 1 second
+    });
+    // Total: ~1 second
+}
+```
+
+---
+
+## 2️⃣ GCD Basics
+
+### Key Terms You Need to Know
+
+| Term | Meaning |
+|------|---------|
+| **Queue** | A line where tasks wait to run |
+| **Dispatch** | Sending a task to a queue |
+| **Async** | "Don't wait, run this later" |
+| **Sync** | "Wait here until this finishes" |
+
+### Queue Types with Examples
+
+```objc
+// 1. MAIN QUEUE - Serial, for UI updates only
+dispatch_async(dispatch_get_main_queue(), ^{
+    // Update UI here (always runs on main thread)
+});
+
+// 2. GLOBAL QUEUE - Concurrent, for background work
+dispatch_async(dispatch_get_global_queue(0, 0), ^{
+    // Heavy computation here
+});
+
+// 3. CUSTOM SERIAL QUEUE - Tasks run in order (one at a time)
+dispatch_queue_t myQueue = dispatch_queue_create("com.myapp.queue", DISPATCH_QUEUE_SERIAL);
+dispatch_async(myQueue, ^{
+    NSLog(@"Task 1");  // Runs first
+});
+dispatch_async(myQueue, ^{
+    NSLog(@"Task 2");  // Waits for Task 1
+});
+
+// 4. CUSTOM CONCURRENT QUEUE - Tasks run together
+dispatch_queue_t concurrentQueue = dispatch_queue_create("com.myapp.concurrent", 
+                                                         DISPATCH_QUEUE_CONCURRENT);
+```
+
+---
+
+## 3️⃣ Memory Management Comparison
+
+### MRR (Manual Retain-Release) - You Control Memory
+
+```objc
+// MRR: Manual memory management - YOU must manage everything
+- (void)mrExample {
+    // Step 1: Create object (retain count = 1)
+    NSMutableArray *results = [[NSMutableArray alloc] init];
+    
+    // Step 2: Copy block for async use (required in MRR)
+    void (^completion)(NSArray *) = ^(NSArray *arr) {
+        NSLog(@"Results: %@", arr);
+    };
+    void (^copiedBlock)(NSArray *) = Block_copy(completion);
+    
+    // Use in async
+    dispatch_async(dispatch_get_global_queue(0, 0), ^{
+        copiedBlock(@[@1, @2, @3]);
+    });
+    
+    // Step 3: RELEASE everything when done
+    Block_release(copiedBlock);
+    [results release];
+}
+```
+
+### ARC (Automatic Reference Counting) - Compiler Controls Memory
+
+```objc
+// ARC: Automatic memory management - compiler handles everything
+- (void)arcExample {
+    // Step 1: Create object normally
+    NSMutableArray *results = [NSMutableArray array];
+    
+    // Step 2: Use block directly (compiler handles copying)
+    void (^completion)(NSArray *) = ^(NSArray *arr) {
+        NSLog(@"Results: %@", arr);
+    };
+    
+    // Use in async
+    dispatch_async(dispatch_get_global_queue(0, 0), ^{
+        completion(@[@1, @2, @3]);
+    });
+    
+    // Step 3: NO manual release needed!
+}
+```
+
+### Side-by-Side Comparison Table
+
+| Action | MRR | ARC |
+|--------|-----|-----|
+| Create object | `[[Class alloc] init]` | `[Class array]` |
+| Create queue | `create` + `release` | `create` only |
+| Copy block for async | `Block_copy()` | automatic |
+| Release block | `Block_release()` | automatic |
+| Release object | `[obj release]` | automatic |
+
+### Common MRR Mistakes to Avoid
+
+```objc
+// ❌ WRONG in MRR - Forgetting to release queue (MEMORY LEAK!)
+- (void)badMrExample {
+    dispatch_queue_t queue = dispatch_queue_create("test", DISPATCH_QUEUE_SERIAL);
+    // ... use queue ...
+    // FORGOT: dispatch_release(queue);
+}
+
+// ❌ WRONG in MRR - Block may be deallocated before execution
+- (void)badMrExample2 {
+    void (^myBlock)(void) = ^{ NSLog(@"Test"); };
+    dispatch_async(dispatch_get_global_queue(0, 0), myBlock);
+    // FORGOT: Block_copy() - block is on stack, may die!
+}
+
+// ✅ CORRECT in MRR
+- (void)correctMrExample {
+    dispatch_queue_t queue = dispatch_queue_create("test", DISPATCH_QUEUE_SERIAL);
+    void (^myBlock)(void) = Block_copy(^{ NSLog(@"Test"); });
+    dispatch_async(queue, myBlock);
+    dispatch_release(queue);     // Safe: queue lives until blocks complete
+    Block_release(myBlock);      // Release block after dispatch
+}
+```
+
+---
+
+## 4️⃣ Performance Comparison
+
+### Why Parallel is 10x Faster
+
+```objc
+// MEASURING PERFORMANCE
+- (void)measureSpeed {
+    NSDate *start = [NSDate date];
+    
+    // Run 10 tasks SEQUENTIALLY
+    for (int i = 0; i < 10; i++) {
+        [NSThread sleepForTimeInterval:0.1];  // 100ms pause each
+    }
+    
+    NSTimeInterval sequentialTime = [[NSDate date] timeIntervalSinceDate:start];
+    NSLog(@"Sequential: %.2f seconds", sequentialTime);  // ~1.0 second
+    
+    // Now run in PARALLEL
+    start = [NSDate date];
+    dispatch_group_t group = dispatch_group_create();
+    
+    for (int i = 0; i < 10; i++) {
+        dispatch_group_enter(group);
+        dispatch_async(dispatch_get_global_queue(0, 0), ^{
+            [NSThread sleepForTimeInterval:0.1];
+            dispatch_group_leave(group);
+        });
+    }
+    
+    dispatch_group_wait(group, DISPATCH_TIME_FOREVER);
+    
+    NSTimeInterval parallelTime = [[NSDate date] timeIntervalSinceDate:start];
+    NSLog(@"Parallel: %.2f seconds", parallelTime);  // ~0.1 second
+}
+```
+
+### When to Use Each
+
+| Scenario | Use Sequential | Use Parallel |
+|----------|:--------------:|:------------:|
+| UI Updates | ✅ | ❌ |
+| Database writes | ✅ | ❌ |
+| File downloads | ❌ | ✅ |
+| Image processing | ❌ | ✅ |
+| API calls | ❌ | ✅ |
+| Task with dependencies | ✅ | ❌ |
+
+---
+
+## 5️⃣ Practical Patterns
+
+### Pattern 1: Parallel Data Fetching (Real-World Use Case)
+
+**Use Case:** Fetch user info, posts, and friends all at once
+
+```objc
+// ARC VERSION (Recommended for modern code)
+- (void)fetchUserDataWithCompletion:(void (^)(NSDictionary *))completion {
+    dispatch_group_t group = dispatch_group_create();
+    NSMutableDictionary *data = [NSMutableDictionary dictionary];
+    NSLock *lock = [[NSLock alloc] init];
+    
+    // Fetch user info
+    dispatch_group_enter(group);
+    dispatch_async(dispatch_get_global_queue(0, 0), ^{
+        [NSThread sleepForTimeInterval:0.2];  // Simulate network
+        NSDictionary *user = @{@"name": @"John", @"id": @123};
+        
+        [lock lock];
+        data[@"user"] = user;
+        [lock unlock];
+        
+        dispatch_group_leave(group);
+    });
+    
+    // Fetch posts (runs at same time)
+    dispatch_group_enter(group);
+    dispatch_async(dispatch_get_global_queue(0, 0), ^{
+        [NSThread sleepForTimeInterval:0.15];
+        NSArray *posts = @[@"Post 1", @"Post 2"];
+        
+        [lock lock];
+        data[@"posts"] = posts;
+        [lock unlock];
+        
+        dispatch_group_leave(group);
+    });
+    
+    // Fetch friends (runs at same time)
+    dispatch_group_enter(group);
+    dispatch_async(dispatch_get_global_queue(0, 0), ^{
+        [NSThread sleepForTimeInterval:0.1];
+        NSArray *friends = @[@"Alice", @"Bob"];
+        
+        [lock lock];
+        data[@"friends"] = friends;
+        [lock unlock];
+        
+        dispatch_group_leave(group);
+    });
+    
+    // Called when ALL tasks complete
+    dispatch_group_notify(group, dispatch_get_main_queue(), ^{
+        completion([data copy]);  // Return immutable copy
+        // ARC: lock auto-released
+    });
+}
+
+// Usage
+[self fetchUserDataWithCompletion:^(NSDictionary *userData) {
+    NSLog(@"Got all data: %@", userData);
+}];
+```
+
+### Pattern 2: Sequential Operations (Must Run in Order)
+
+**Use Case:** Login → Load Data → Process (order matters)
+
+```objc
+// ARC VERSION
+- (void)runSequentialTasksWithCompletion:(void (^)(void))completion {
+    dispatch_queue_t serialQueue = dispatch_queue_create("com.app.tasks", 
+                                                         DISPATCH_QUEUE_SERIAL);
+    
+    dispatch_async(serialQueue, ^{
+        NSLog(@"Task 1: Login");
+        [NSThread sleepForTimeInterval:0.1];
+    });
+    
+    dispatch_async(serialQueue, ^{
+        NSLog(@"Task 2: Load Data");
+        [NSThread sleepForTimeInterval:0.1];
+    });
+    
+    dispatch_async(serialQueue, ^{
+        NSLog(@"Task 3: Process Data");
+        [NSThread sleepForTimeInterval:0.1];
+        
+        // Call completion on main thread
+        dispatch_async(dispatch_get_main_queue(), ^{
+            completion();
+        });
+    });
+}
+```
+
+### Pattern 3: Parallel Calculations with Results
+
+**Use Case:** Calculate values and collect them all
+
+```objc
+// ARC VERSION
+- (void)calculateInParallelWithCompletion:(void (^)(NSArray *))completion {
+    dispatch_queue_t queue = dispatch_queue_create("com.app.calc", 
+                                                   DISPATCH_QUEUE_CONCURRENT);
+    dispatch_group_t group = dispatch_group_create();
+    NSMutableArray *results = [NSMutableArray array];
+    NSLock *lock = [[NSLock alloc] init];
+    
+    for (int i = 1; i <= 5; i++) {
+        dispatch_group_enter(group);
+        dispatch_async(queue, ^{
+            NSInteger result = i * i;  // Square the number
+            
+            [lock lock];
+            [results addObject:@(result)];
+            [lock unlock];
+            
+            dispatch_group_leave(group);
+        });
+    }
+    
+    dispatch_group_notify(group, dispatch_get_main_queue(), ^{
+        NSArray *sorted = [results sortedArrayUsingSelector:@selector(compare:)];
+        completion(sorted);  // Returns [1, 4, 9, 16, 25]
+    });
+}
+```
+
+---
+
+## 6️⃣ Quick Reference Card
+
+### Essential GCD Functions
+
+| Function | Meaning | Example |
+|----------|---------|---------|
+| `dispatch_async(queue, block)` | Run block asynchronously | `dispatch_async(q, ^{})` |
+| `dispatch_sync(queue, block)` | Run block and wait | `dispatch_sync(q, ^{})` |
+| `dispatch_group_create()` | Create a group | `dispatch_group_t g = ...` |
+| `dispatch_group_enter(group)` | Task started | `enter(group)` |
+| `dispatch_group_leave(group)` | Task finished | `leave(group)` |
+| `dispatch_group_wait(group, time)` | Wait for all | `wait(group, FOREVER)` |
+| `dispatch_group_notify(group, queue, block)` | Run when all done | `notify(g, q, ^{})` |
+| `dispatch_get_main_queue()` | Main thread | For UI updates |
+| `dispatch_get_global_queue(0, 0)` | Background queue | For parallel work |
+| `dispatch_queue_create(name, type)` | Create custom queue | Serial or Concurrent |
+
+### Memory Management Rules
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│                         MRR RULES                                │
+├─────────────────────────────────────────────────────────────────┤
+│  • alloc/new/copy → RETAIN count +1 → YOU must release          │
+│  • retain → RETAIN count +1 → YOU must release                  │
+│  • release → RETAIN count -1 → dealloc when 0                   │
+│  • Block_copy() → YOU must Block_release()                      │
+│  • dispatch_queue_create → YOU must dispatch_release()          │
+└─────────────────────────────────────────────────────────────────┘
+
+┌─────────────────────────────────────────────────────────────────┐
+│                         ARC RULES                                │
+├─────────────────────────────────────────────────────────────────┤
+│  • DON'T call retain, release, autorelease                      │
+│  • DON'T call Block_copy/Block_release                          │
+│  • DON'T call [super dealloc]                                   │
+│  • DON'T manage dispatch objects manually                       │
+│  • Compiler handles everything automatically                     │
+└─────────────────────────────────────────────────────────────────┘
+```
+
+### Quick Decision Tree
+
+```
+START
+  │
+  ├─ Need UI update?
+  │    └─ YES → dispatch_get_main_queue()
+  │
+  ├─ Tasks depend on each other?
+  │    └─ YES → Serial queue (DISPATCH_QUEUE_SERIAL)
+  │
+  ├─ Tasks are independent?
+  │    └─ YES → Concurrent queue (DISPATCH_QUEUE_CONCURRENT)
+  │
+  └─ Need to wait for multiple tasks?
+       └─ YES → Use dispatch_group
+```
+
+---
+
+## 📝 Summary
+
+| Aspect | MRR | ARC |
+|--------|-----|-----|
+| Code complexity | Higher | Lower |
+| Error-prone | Yes (memory leaks, crashes) | No |
+| Boilerplate | More | Less |
+| Performance | Same | Same |
+| Learning value | Great for understanding | Production standard |
+
+### 🎯 Key Takeaways
+
+1. **Use Main Queue** for UI updates only
+2. **Use Serial Queues** when order matters
+3. **Use Concurrent Queues** for independent parallel tasks
+4. **Use Dispatch Groups** to track multiple async operations
+5. **Always use locks** when multiple threads access shared data
+6. **Prefer ARC** for modern iOS development
+7. **Learn MRR** to understand memory management fundamentals
+
+### ✅ Recommended Pattern (Modern iOS)
+
+```objc
+// RECOMMENDED: Modern ARC approach
+- (void)recommendedPattern {
+    dispatch_async(dispatch_get_global_queue(0, 0), ^{
+        // Background work here
+        
+        dispatch_async(dispatch_get_main_queue(), ^{
+            // Update UI here
+        });
+    });
+}
+```
+
+---
 
 ## 🙏 Acknowledgments
 
