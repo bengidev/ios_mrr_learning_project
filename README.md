@@ -1,223 +1,94 @@
 # iOS MRR Learning Project
 
-A hands-on learning project for understanding **Manual Retain-Release (MRR)** memory management in Objective-C, the predecessor to ARC (Automatic Reference Counting).
+An educational iOS app for studying **Manual Retain-Release (MRR)** through a clean, Objective-C-only architecture. The project targets iOS 12, builds its UI programmatically with Auto Layout, and keeps ARC disabled in the application target on purpose.
 
-> ⚠️ **Educational Purpose Only**: This project uses pre-ARC memory management patterns for learning. Apple requires iOS 15+ for new App Store submissions, so this is not intended for production use.
+## Architecture
 
-## 📚 What You'll Learn
+The app uses `Clean Architecture` without coordinators:
 
-### Memory Management Fundamentals
-- **Reference Counting**: How iOS tracks object ownership
-- **`retain`**: Claiming ownership of an object
-- **`release`**: Relinquishing ownership
-- **`autorelease`**: Delayed release mechanism
-- **`dealloc`**: Object cleanup before deallocation
+- `App`: composition root in `AppDelegate`, window setup, tab bar shell
+- `Core/Domain`: entities, repository contract, and use cases
+- `Core/Data`: static in-memory repository for demo content
+- `Core/Presentation`: presenters, view protocols, generic list/detail controllers, screen factory
+- `Features`: tab-specific entry screens for `Basics`, `Relationships`, and `Lifecycle`
 
-### Property Attributes
-| MRR Attribute | Purpose |
-|---------------|---------|
-| `retain` | Object ownership (increases retain count) |
-| `assign` | Primitives or weak references |
-| `copy` | Create owned copy of object |
+Each tab pushes a detail screen that explains one MRR topic with rules, review prompts, and cleanup checklists.
 
-### Design Patterns
-- **MVVM** (Model-View-ViewModel)
-- **Delegate Pattern** with proper memory management
-- **Singleton Pattern** in MRR
-- **Notification Center** usage and cleanup
+## Learning Areas
 
-## 🛠 Project Setup
+- `Basics`
+  - retain / release balance
+  - autorelease pool usage
+  - property semantics
+- `Relationships`
+  - delegate ownership
+  - parent-child ownership
+  - collection retention behavior
+- `Lifecycle`
+  - `dealloc` ordering
+  - observer cleanup
+  - timer invalidation
 
-### Requirements
-- Xcode 15+ (or latest version)
-- macOS Sonoma or later
-- iOS Simulator
+## Requirements
 
-### Building
-1. Open `MRR Project.xcodeproj` in Xcode
-2. Select iOS Simulator target
-3. Build and Run (⌘R)
+- Xcode 15+
+- macOS with the iOS Simulator runtime available
+- Homebrew if you want to install the formatter locally
 
-### ARC is Disabled
-This project has **Objective-C Automatic Reference Counting** set to **NO** in Build Settings, enabling manual memory management.
+## Build and Run
 
-## 📖 Code Examples
+1. Open [MRR Project.xcodeproj](/Users/beng/Documents/iOS Projects/iOS MRR Learning Project/ios_mrr_learning_project/MRR Project.xcodeproj) in Xcode.
+2. Select the `MRR Project` scheme.
+3. Run the app on an iOS Simulator.
 
-### Basic Retain/Release
-```objc
-// Creating an object (retain count = 1)
-NSString *name = [[NSString alloc] initWithString:@"Hello"];
+## Formatting and Linting
 
-// Retaining (retain count = 2)
-[name retain];
+This repository does **not** use `SwiftFormat` or `SwiftLint` because the codebase stays fully Objective-C.
 
-// Releasing (retain count = 1)
-[name release];
+Objective-C tooling:
 
-// Final release (retain count = 0 → deallocated)
-[name release];
+- Formatter: `uncrustify`
+- Linter / static analysis: `xcodebuild analyze`
+
+Install the formatter:
+
+```bash
+brew install uncrustify
 ```
 
-### Property Declaration
-```objc
-@interface Person : NSObject
-@property (nonatomic, retain) NSString *name;
-@property (nonatomic, assign) NSInteger age;
-@end
+Run formatting:
 
-@implementation Person
-- (void)dealloc {
-    [_name release];  // Must release retained properties!
-    [super dealloc];  // Must call super
-}
-@end
+```bash
+./scripts/format-objc.sh
 ```
 
-### Autorelease
-```objc
-- (NSString *)fullName {
-    NSString *result = [[NSString alloc] initWithFormat:@"%@ %@", 
-                        self.firstName, self.lastName];
-    return [result autorelease];  // Caller doesn't need to release
-}
+Run static analysis:
+
+```bash
+./scripts/lint-objc.sh
 ```
 
-## 📁 Project Structure
+## Tests
 
-```
-MRR Project/
-├── AppDelegate.h/m      # Application lifecycle
-├── ViewController.h/m   # Main view controller
-├── Models/              # Data models with MRR
-├── Services/            # Service classes with delegate patterns
-└── Supporting Files/    # Resources and configuration
-```
+The project includes an `MRR ProjectTests` unit test target covering:
 
-## 🔍 Memory Management Rules
+- repository and use case behavior
+- presenter output
+- detail screen factory wiring
+- list controller navigation trigger
 
-### The Golden Rules
-1. **If you `alloc`, `new`, `copy`, or `mutableCopy`** → you must `release`
-2. **If you `retain`** → you must `release`
-3. **If you receive from other methods** → don't release (unless you retained)
+## MRR Rules in This Repo
 
-### Common Pitfalls
-- ❌ Forgetting to release in `dealloc`
-- ❌ Over-releasing (double release → crash)
-- ❌ Using `retain` for delegates (causes retain cycles)
-- ❌ Forgetting to call `[super dealloc]`
+1. Objects created with `alloc`, `new`, `copy`, or `mutableCopy` are explicitly balanced.
+2. Retained or copied ivars are released in `dealloc`.
+3. Delegate or back references stay non-owning with `assign`.
+4. UI is created programmatically; no Interface Builder files are used.
 
-## 📝 License
+## Notes
 
-This project is for educational purposes. Feel free to use and modify for learning.
-
-Learn concurrent programming patterns using GCD with both MRR and ARC implementations.
-
-### Key Concepts
-
-| Concept | Description |
-|---------|-------------|
-| **Serial Queue** | Tasks execute one at a time, in order |
-| **Concurrent Queue** | Tasks execute in parallel (simultaneously) |
-| **Dispatch Group** | Wait for multiple tasks to complete |
-| **Main Queue** | Serial queue for UI updates |
-
-### Sequential vs Parallel Execution
-
-```objc
-// SEQUENTIAL - Tasks run one after another (~1.0s for 10 tasks)
-dispatch_queue_t serial = dispatch_queue_create("com.app.serial", DISPATCH_QUEUE_SERIAL);
-for (int i = 0; i < 10; i++) {
-    dispatch_async(serial, ^{
-        sleep(0.1);  // Total: ~1.0s
-    });
-}
-
-// PARALLEL - Tasks run simultaneously (~0.1s for 10 tasks)
-dispatch_queue_t concurrent = dispatch_queue_create("com.app.concurrent", DISPATCH_QUEUE_CONCURRENT);
-for (int i = 0; i < 10; i++) {
-    dispatch_async(concurrent, ^{
-        sleep(0.1);  // Total: ~0.1s
-    });
-}
-```
-
-### MRR vs ARC Memory in GCD
-
-| Aspect | MRR | ARC |
-|--------|-----|-----|
-| `dispatch_queue_create` | Returns retained queue (must `dispatch_release`) | Auto-released |
-| `dispatch_group_create` | Returns retained group (must `dispatch_release`) | Auto-released |
-| Blocks with objects | Need `Block_copy`/`Block_release` | Auto-managed |
-| Captured objects | Must `retain` for async blocks | Auto-retained |
-
-### MRR Example: Parallel Execution
-
-```objc
-dispatch_queue_t queue = dispatch_queue_create("com.app.concurrent", DISPATCH_QUEUE_CONCURRENT);
-dispatch_group_t group = dispatch_group_create();
-
-// Task 1
-dispatch_group_enter(group);
-dispatch_async(queue, ^{
-    // Do work...
-    dispatch_group_leave(group);
-});
-
-// Task 2
-dispatch_group_enter(group);
-dispatch_async(queue, ^{
-    // Do work...
-    dispatch_group_leave(group);
-});
-
-// Called when ALL tasks complete
-dispatch_group_notify(group, dispatch_get_main_queue(), ^{
-    // All done!
-});
-
-// Release resources (MRR only)
-dispatch_release(group);
-dispatch_release(queue);
-```
-
-### ARC Example: Same Pattern (Simpler)
-
-```objc
-dispatch_queue_t queue = dispatch_queue_create("com.app.concurrent", DISPATCH_QUEUE_CONCURRENT);
-dispatch_group_t group = dispatch_group_create();
-
-// Same tasks... but NO need to release queue/group
-dispatch_group_notify(group, dispatch_get_main_queue(), ^{
-    // All done!
-});
-// ARC handles cleanup automatically
-```
-
-### Practical Pattern: Parallel Data Fetch
-
-```objc
-// Fetch user, posts, and friends simultaneously
-- (void)fetchUserDataWithCompletion:(void (^)(NSDictionary *))completion {
-    dispatch_group_t group = dispatch_group_create();
-    NSMutableDictionary *data = [NSMutableDictionary dictionary];
-    NSLock *lock = [[NSLock alloc] init];
-
-    // Fetch user (MRR: data and lock retained by blocks)
-    dispatch_group_enter(group);
-    dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
-        // Simulate network...
-        [lock lock];
-        data[@"user"] = userInfo;
-        [lock unlock];
-        dispatch_group_leave(group);
-    });
-
-    // Fetch posts...
-    dispatch_group_enter(group);
-    dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
-        // Simulate network...
-        [lock lock];
-        data[@"posts"] = posts;
+- The app target intentionally has `CLANG_ENABLE_OBJC_ARC = NO`.
+- The test target may use standard XCTest conveniences, but the application code remains strict MRR.
+- This project is for learning and review, not for App Store submission.
         [lock unlock];
         dispatch_group_leave(group);
     });
