@@ -6,7 +6,13 @@
 //
 
 #import "AppDelegate.h"
-#import "ViewController.h"
+#import "../Core/Data/StaticMRRDemoRepository.h"
+#import "../Core/Domain/UseCases/LoadDemoDetailUseCase.h"
+#import "../Core/Domain/UseCases/LoadDemoListUseCase.h"
+#import "../Core/Presentation/Factories/DemoScreenFactory.h"
+#import "../Features/Basics/Presentation/BasicsListViewController.h"
+#import "../Features/Lifecycle/Presentation/LifecycleListViewController.h"
+#import "../Features/Relationships/Presentation/RelationshipsListViewController.h"
 
 @implementation AppDelegate
 
@@ -14,27 +20,41 @@
 
 - (void)dealloc {
     [_window release];
-    _window = nil;
-
-    [_viewController release];
-    _viewController = nil;
-
     [super dealloc];
 }
 
 #pragma mark - UIApplicationDelegate
 
 - (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions {
-    // Create the main window programmatically
-    self.window = [[[UIWindow alloc] initWithFrame:[[UIScreen mainScreen] bounds]]autorelease];
+    StaticMRRDemoRepository *repository = [[[StaticMRRDemoRepository alloc] init] autorelease];
+    LoadDemoListUseCase *listUseCase = [[[LoadDemoListUseCase alloc] initWithRepository:repository] autorelease];
+    LoadDemoDetailUseCase *detailUseCase = [[[LoadDemoDetailUseCase alloc] initWithRepository:repository] autorelease];
+    DemoScreenFactory *screenFactory = [[[DemoScreenFactory alloc] initWithDetailUseCase:detailUseCase] autorelease];
 
-    // Create the root view controller
-    self.viewController = [[[ViewController alloc] init] autorelease];
+    BasicsListViewController *basicsController = [[[BasicsListViewController alloc] initWithListUseCase:listUseCase
+                                                                                            screenFactory:screenFactory] autorelease];
+    RelationshipsListViewController *relationshipsController = [[[RelationshipsListViewController alloc] initWithListUseCase:listUseCase
+                                                                                                                 screenFactory:screenFactory] autorelease];
+    LifecycleListViewController *lifecycleController = [[[LifecycleListViewController alloc] initWithListUseCase:listUseCase
+                                                                                                      screenFactory:screenFactory] autorelease];
 
-    // Set as root view controller
-    self.window.rootViewController = self.viewController;
+    UINavigationController *basicsNavigationController = [[[UINavigationController alloc] initWithRootViewController:basicsController] autorelease];
+    UINavigationController *relationshipsNavigationController = [[[UINavigationController alloc] initWithRootViewController:relationshipsController] autorelease];
+    UINavigationController *lifecycleNavigationController = [[[UINavigationController alloc] initWithRootViewController:lifecycleController] autorelease];
 
-    // Make visible
+    basicsNavigationController.tabBarItem = [[[UITabBarItem alloc] initWithTitle:@"Basics" image:nil selectedImage:nil] autorelease];
+    relationshipsNavigationController.tabBarItem = [[[UITabBarItem alloc] initWithTitle:@"Relationships" image:nil selectedImage:nil] autorelease];
+    lifecycleNavigationController.tabBarItem = [[[UITabBarItem alloc] initWithTitle:@"Lifecycle" image:nil selectedImage:nil] autorelease];
+
+    UITabBarController *tabBarController = [[[UITabBarController alloc] init] autorelease];
+    tabBarController.viewControllers = [NSArray arrayWithObjects:
+                                        basicsNavigationController,
+                                        relationshipsNavigationController,
+                                        lifecycleNavigationController,
+                                        nil];
+
+    self.window = [[[UIWindow alloc] initWithFrame:[[UIScreen mainScreen] bounds]] autorelease];
+    self.window.rootViewController = tabBarController;
     [self.window makeKeyAndVisible];
 
     return YES;

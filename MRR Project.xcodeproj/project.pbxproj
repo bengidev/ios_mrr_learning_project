@@ -7,110 +7,341 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		AAA00001001 /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = AAA00001000 /* main.m */; };
-		AAA00002001 /* AppDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = AAA00002000 /* AppDelegate.m */; };
-		AAA00003001 /* ViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = AAA00003000 /* ViewController.m */; };
-		EC7907152F0376A7000070AA /* BaseCoordinator.m in Sources */ = {isa = PBXBuildFile; fileRef = EC7907142F0376A7000070AA /* BaseCoordinator.m */; };
+		A00000000000000000000700 /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = A00000000000000000000603 /* main.m */; };
+		A00000000000000000000701 /* AppDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = A00000000000000000000605 /* AppDelegate.m */; };
+		A00000000000000000000702 /* MRRDemoCategory.m in Sources */ = {isa = PBXBuildFile; fileRef = A00000000000000000000608 /* MRRDemoCategory.m */; };
+		A00000000000000000000703 /* MRRDemoSummary.m in Sources */ = {isa = PBXBuildFile; fileRef = A0000000000000000000060A /* MRRDemoSummary.m */; };
+		A00000000000000000000704 /* MRRDemoSection.m in Sources */ = {isa = PBXBuildFile; fileRef = A0000000000000000000060C /* MRRDemoSection.m */; };
+		A00000000000000000000705 /* MRRDemoDetail.m in Sources */ = {isa = PBXBuildFile; fileRef = A0000000000000000000060E /* MRRDemoDetail.m */; };
+		A00000000000000000000706 /* StaticMRRDemoRepository.m in Sources */ = {isa = PBXBuildFile; fileRef = A00000000000000000000611 /* StaticMRRDemoRepository.m */; };
+		A00000000000000000000707 /* LoadDemoListUseCase.m in Sources */ = {isa = PBXBuildFile; fileRef = A00000000000000000000613 /* LoadDemoListUseCase.m */; };
+		A00000000000000000000708 /* LoadDemoDetailUseCase.m in Sources */ = {isa = PBXBuildFile; fileRef = A00000000000000000000615 /* LoadDemoDetailUseCase.m */; };
+		A00000000000000000000709 /* DemoListPresenter.m in Sources */ = {isa = PBXBuildFile; fileRef = A00000000000000000000619 /* DemoListPresenter.m */; };
+		A0000000000000000000070A /* DemoDetailPresenter.m in Sources */ = {isa = PBXBuildFile; fileRef = A0000000000000000000061B /* DemoDetailPresenter.m */; };
+		A0000000000000000000070B /* DemoScreenFactory.m in Sources */ = {isa = PBXBuildFile; fileRef = A0000000000000000000061D /* DemoScreenFactory.m */; };
+		A0000000000000000000070C /* DemoListViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = A0000000000000000000061F /* DemoListViewController.m */; };
+		A0000000000000000000070D /* DemoDetailViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = A00000000000000000000621 /* DemoDetailViewController.m */; };
+		A0000000000000000000070E /* BasicsListViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = A00000000000000000000623 /* BasicsListViewController.m */; };
+		A0000000000000000000070F /* RelationshipsListViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = A00000000000000000000625 /* RelationshipsListViewController.m */; };
+		A00000000000000000000710 /* LifecycleListViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = A00000000000000000000627 /* LifecycleListViewController.m */; };
+		A00000000000000000000711 /* RepositoryAndUseCaseTests.m in Sources */ = {isa = PBXBuildFile; fileRef = A00000000000000000000628 /* RepositoryAndUseCaseTests.m */; };
+		A00000000000000000000712 /* PresenterTests.m in Sources */ = {isa = PBXBuildFile; fileRef = A00000000000000000000629 /* PresenterTests.m */; };
+		A00000000000000000000713 /* DemoScreenFactoryTests.m in Sources */ = {isa = PBXBuildFile; fileRef = A0000000000000000000062A /* DemoScreenFactoryTests.m */; };
+		A00000000000000000000714 /* DemoListViewControllerTests.m in Sources */ = {isa = PBXBuildFile; fileRef = A0000000000000000000062B /* DemoListViewControllerTests.m */; };
+		A00000000000000000000715 /* XCTest.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = A00000000000000000000602 /* XCTest.framework */; };
 /* End PBXBuildFile section */
 
+/* Begin PBXContainerItemProxy section */
+		A00000000000000000000500 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = A00000000000000000000001 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = A00000000000000000000100;
+			remoteInfo = "MRR Project";
+		};
+/* End PBXContainerItemProxy section */
+
 /* Begin PBXFileReference section */
-		AAA00000000 /* MRR Project.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "MRR Project.app"; sourceTree = BUILT_PRODUCTS_DIR; };
-		AAA00001000 /* main.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = main.m; sourceTree = "<group>"; };
-		AAA00002000 /* AppDelegate.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = AppDelegate.m; sourceTree = "<group>"; };
-		AAA00002002 /* AppDelegate.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = AppDelegate.h; sourceTree = "<group>"; };
-		AAA00003000 /* ViewController.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = ViewController.m; sourceTree = "<group>"; };
-		AAA00003002 /* ViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ViewController.h; sourceTree = "<group>"; };
-		AAA00004000 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
-		EC7907102F027F87000070AA /* Coordinator.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = Coordinator.h; sourceTree = "<group>"; };
-		EC7907132F0376A7000070AA /* BaseCoordinator.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = BaseCoordinator.h; sourceTree = "<group>"; };
-		EC7907142F0376A7000070AA /* BaseCoordinator.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = BaseCoordinator.m; sourceTree = "<group>"; };
+		A00000000000000000000600 /* MRR Project.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "MRR Project.app"; sourceTree = BUILT_PRODUCTS_DIR; };
+		A00000000000000000000601 /* MRR ProjectTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "MRR ProjectTests.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
+		A00000000000000000000602 /* XCTest.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = XCTest.framework; path = System/Library/Frameworks/XCTest.framework; sourceTree = SDKROOT; };
+		A00000000000000000000603 /* main.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = main.m; sourceTree = "<group>"; };
+		A00000000000000000000604 /* AppDelegate.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = AppDelegate.h; sourceTree = "<group>"; };
+		A00000000000000000000605 /* AppDelegate.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = AppDelegate.m; sourceTree = "<group>"; };
+		A00000000000000000000606 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		A00000000000000000000607 /* MRRDemoCategory.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = MRRDemoCategory.h; sourceTree = "<group>"; };
+		A00000000000000000000608 /* MRRDemoCategory.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = MRRDemoCategory.m; sourceTree = "<group>"; };
+		A00000000000000000000609 /* MRRDemoSummary.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = MRRDemoSummary.h; sourceTree = "<group>"; };
+		A0000000000000000000060A /* MRRDemoSummary.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = MRRDemoSummary.m; sourceTree = "<group>"; };
+		A0000000000000000000060B /* MRRDemoSection.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = MRRDemoSection.h; sourceTree = "<group>"; };
+		A0000000000000000000060C /* MRRDemoSection.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = MRRDemoSection.m; sourceTree = "<group>"; };
+		A0000000000000000000060D /* MRRDemoDetail.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = MRRDemoDetail.h; sourceTree = "<group>"; };
+		A0000000000000000000060E /* MRRDemoDetail.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = MRRDemoDetail.m; sourceTree = "<group>"; };
+		A0000000000000000000060F /* MRRDemoRepository.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = MRRDemoRepository.h; sourceTree = "<group>"; };
+		A00000000000000000000610 /* StaticMRRDemoRepository.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = StaticMRRDemoRepository.h; sourceTree = "<group>"; };
+		A00000000000000000000611 /* StaticMRRDemoRepository.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = StaticMRRDemoRepository.m; sourceTree = "<group>"; };
+		A00000000000000000000612 /* LoadDemoListUseCase.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = LoadDemoListUseCase.h; sourceTree = "<group>"; };
+		A00000000000000000000613 /* LoadDemoListUseCase.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = LoadDemoListUseCase.m; sourceTree = "<group>"; };
+		A00000000000000000000614 /* LoadDemoDetailUseCase.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = LoadDemoDetailUseCase.h; sourceTree = "<group>"; };
+		A00000000000000000000615 /* LoadDemoDetailUseCase.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = LoadDemoDetailUseCase.m; sourceTree = "<group>"; };
+		A00000000000000000000616 /* DemoListView.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = DemoListView.h; sourceTree = "<group>"; };
+		A00000000000000000000617 /* DemoDetailView.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = DemoDetailView.h; sourceTree = "<group>"; };
+		A00000000000000000000618 /* DemoListPresenter.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = DemoListPresenter.h; sourceTree = "<group>"; };
+		A00000000000000000000619 /* DemoListPresenter.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = DemoListPresenter.m; sourceTree = "<group>"; };
+		A0000000000000000000061A /* DemoDetailPresenter.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = DemoDetailPresenter.h; sourceTree = "<group>"; };
+		A0000000000000000000061B /* DemoDetailPresenter.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = DemoDetailPresenter.m; sourceTree = "<group>"; };
+		A0000000000000000000061C /* DemoScreenFactory.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = DemoScreenFactory.h; sourceTree = "<group>"; };
+		A0000000000000000000061D /* DemoScreenFactory.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = DemoScreenFactory.m; sourceTree = "<group>"; };
+		A0000000000000000000061E /* DemoListViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = DemoListViewController.h; sourceTree = "<group>"; };
+		A0000000000000000000061F /* DemoListViewController.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = DemoListViewController.m; sourceTree = "<group>"; };
+		A00000000000000000000620 /* DemoDetailViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = DemoDetailViewController.h; sourceTree = "<group>"; };
+		A00000000000000000000621 /* DemoDetailViewController.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = DemoDetailViewController.m; sourceTree = "<group>"; };
+		A00000000000000000000622 /* BasicsListViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = BasicsListViewController.h; sourceTree = "<group>"; };
+		A00000000000000000000623 /* BasicsListViewController.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = BasicsListViewController.m; sourceTree = "<group>"; };
+		A00000000000000000000624 /* RelationshipsListViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = RelationshipsListViewController.h; sourceTree = "<group>"; };
+		A00000000000000000000625 /* RelationshipsListViewController.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = RelationshipsListViewController.m; sourceTree = "<group>"; };
+		A00000000000000000000626 /* LifecycleListViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = LifecycleListViewController.h; sourceTree = "<group>"; };
+		A00000000000000000000627 /* LifecycleListViewController.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = LifecycleListViewController.m; sourceTree = "<group>"; };
+		A00000000000000000000628 /* RepositoryAndUseCaseTests.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = RepositoryAndUseCaseTests.m; sourceTree = "<group>"; };
+		A00000000000000000000629 /* PresenterTests.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = PresenterTests.m; sourceTree = "<group>"; };
+		A0000000000000000000062A /* DemoScreenFactoryTests.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = DemoScreenFactoryTests.m; sourceTree = "<group>"; };
+		A0000000000000000000062B /* DemoListViewControllerTests.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = DemoListViewControllerTests.m; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
-		AAA00005000 /* Frameworks */ = {
+		A00000000000000000000401 /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		A00000000000000000000404 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				A00000000000000000000715 /* XCTest.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
-		AAA00010000 = {
+		A00000000000000000000002 = {
 			isa = PBXGroup;
 			children = (
-				AAA00011000 /* MRR Project */,
-				AAA00012000 /* Products */,
+				A00000000000000000000003 /* MRR Project */,
+				A00000000000000000000005 /* MRR ProjectTests */,
+				A00000000000000000000004 /* Products */,
 			);
 			sourceTree = "<group>";
 		};
-		AAA00011000 /* MRR Project */ = {
+		A00000000000000000000003 /* MRR Project */ = {
 			isa = PBXGroup;
 			children = (
-				EC7907112F037683000070AA /* Core */,
-				EC79070D2F027923000070AA /* App */,
-				AAA00003002 /* ViewController.h */,
-				AAA00003000 /* ViewController.m */,
+				A00000000000000000000018 /* App */,
+				A00000000000000000000006 /* Core */,
+				A00000000000000000000011 /* Features */,
 			);
 			path = "MRR Project";
 			sourceTree = "<group>";
 		};
-		AAA00012000 /* Products */ = {
+		A00000000000000000000004 /* Products */ = {
 			isa = PBXGroup;
 			children = (
-				AAA00000000 /* MRR Project.app */,
+				A00000000000000000000600 /* MRR Project.app */,
+				A00000000000000000000601 /* MRR ProjectTests.xctest */,
 			);
 			name = Products;
 			sourceTree = "<group>";
 		};
-		EC79070D2F027923000070AA /* App */ = {
+		A00000000000000000000005 /* MRR ProjectTests */ = {
 			isa = PBXGroup;
 			children = (
-				AAA00002002 /* AppDelegate.h */,
-				AAA00002000 /* AppDelegate.m */,
-				AAA00001000 /* main.m */,
-				AAA00004000 /* Info.plist */,
+				A00000000000000000000628 /* RepositoryAndUseCaseTests.m */,
+				A00000000000000000000629 /* PresenterTests.m */,
+				A0000000000000000000062A /* DemoScreenFactoryTests.m */,
+				A0000000000000000000062B /* DemoListViewControllerTests.m */,
 			);
-			path = App;
+			path = "MRR ProjectTests";
 			sourceTree = "<group>";
 		};
-		EC79070F2F027F74000070AA /* Protocols */ = {
+		A00000000000000000000006 /* Core */ = {
 			isa = PBXGroup;
 			children = (
-				EC7907102F027F87000070AA /* Coordinator.h */,
-			);
-			path = Protocols;
-			sourceTree = "<group>";
-		};
-		EC7907112F037683000070AA /* Core */ = {
-			isa = PBXGroup;
-			children = (
-				EC7907122F037689000070AA /* Base */,
-				EC79070F2F027F74000070AA /* Protocols */,
+				A00000000000000000000007 /* Domain */,
+				A00000000000000000000008 /* Data */,
+				A00000000000000000000009 /* Presentation */,
 			);
 			path = Core;
 			sourceTree = "<group>";
 		};
-		EC7907122F037689000070AA /* Base */ = {
+		A00000000000000000000007 /* Domain */ = {
 			isa = PBXGroup;
 			children = (
-				EC7907132F0376A7000070AA /* BaseCoordinator.h */,
-				EC7907142F0376A7000070AA /* BaseCoordinator.m */,
+				A0000000000000000000000A /* Models */,
+				A0000000000000000000000B /* Repositories */,
+				A0000000000000000000000C /* UseCases */,
 			);
-			path = Base;
+			path = Domain;
+			sourceTree = "<group>";
+		};
+		A00000000000000000000008 /* Data */ = {
+			isa = PBXGroup;
+			children = (
+				A00000000000000000000610 /* StaticMRRDemoRepository.h */,
+				A00000000000000000000611 /* StaticMRRDemoRepository.m */,
+			);
+			path = Data;
+			sourceTree = "<group>";
+		};
+		A00000000000000000000009 /* Presentation */ = {
+			isa = PBXGroup;
+			children = (
+				A0000000000000000000000D /* Protocols */,
+				A0000000000000000000000E /* Presenters */,
+				A0000000000000000000000F /* Factories */,
+				A00000000000000000000010 /* ViewControllers */,
+			);
+			path = Presentation;
+			sourceTree = "<group>";
+		};
+		A0000000000000000000000A /* Models */ = {
+			isa = PBXGroup;
+			children = (
+				A00000000000000000000607 /* MRRDemoCategory.h */,
+				A00000000000000000000608 /* MRRDemoCategory.m */,
+				A00000000000000000000609 /* MRRDemoSummary.h */,
+				A0000000000000000000060A /* MRRDemoSummary.m */,
+				A0000000000000000000060B /* MRRDemoSection.h */,
+				A0000000000000000000060C /* MRRDemoSection.m */,
+				A0000000000000000000060D /* MRRDemoDetail.h */,
+				A0000000000000000000060E /* MRRDemoDetail.m */,
+			);
+			path = Models;
+			sourceTree = "<group>";
+		};
+		A0000000000000000000000B /* Repositories */ = {
+			isa = PBXGroup;
+			children = (
+				A0000000000000000000060F /* MRRDemoRepository.h */,
+			);
+			path = Repositories;
+			sourceTree = "<group>";
+		};
+		A0000000000000000000000C /* UseCases */ = {
+			isa = PBXGroup;
+			children = (
+				A00000000000000000000612 /* LoadDemoListUseCase.h */,
+				A00000000000000000000613 /* LoadDemoListUseCase.m */,
+				A00000000000000000000614 /* LoadDemoDetailUseCase.h */,
+				A00000000000000000000615 /* LoadDemoDetailUseCase.m */,
+			);
+			path = UseCases;
+			sourceTree = "<group>";
+		};
+		A0000000000000000000000D /* Protocols */ = {
+			isa = PBXGroup;
+			children = (
+				A00000000000000000000616 /* DemoListView.h */,
+				A00000000000000000000617 /* DemoDetailView.h */,
+			);
+			path = Protocols;
+			sourceTree = "<group>";
+		};
+		A0000000000000000000000E /* Presenters */ = {
+			isa = PBXGroup;
+			children = (
+				A00000000000000000000618 /* DemoListPresenter.h */,
+				A00000000000000000000619 /* DemoListPresenter.m */,
+				A0000000000000000000061A /* DemoDetailPresenter.h */,
+				A0000000000000000000061B /* DemoDetailPresenter.m */,
+			);
+			path = Presenters;
+			sourceTree = "<group>";
+		};
+		A0000000000000000000000F /* Factories */ = {
+			isa = PBXGroup;
+			children = (
+				A0000000000000000000061C /* DemoScreenFactory.h */,
+				A0000000000000000000061D /* DemoScreenFactory.m */,
+			);
+			path = Factories;
+			sourceTree = "<group>";
+		};
+		A00000000000000000000010 /* ViewControllers */ = {
+			isa = PBXGroup;
+			children = (
+				A0000000000000000000061E /* DemoListViewController.h */,
+				A0000000000000000000061F /* DemoListViewController.m */,
+				A00000000000000000000620 /* DemoDetailViewController.h */,
+				A00000000000000000000621 /* DemoDetailViewController.m */,
+			);
+			path = ViewControllers;
+			sourceTree = "<group>";
+		};
+		A00000000000000000000011 /* Features */ = {
+			isa = PBXGroup;
+			children = (
+				A00000000000000000000012 /* Basics */,
+				A00000000000000000000014 /* Relationships */,
+				A00000000000000000000016 /* Lifecycle */,
+			);
+			path = Features;
+			sourceTree = "<group>";
+		};
+		A00000000000000000000012 /* Basics */ = {
+			isa = PBXGroup;
+			children = (
+				A00000000000000000000013 /* Presentation */,
+			);
+			path = Basics;
+			sourceTree = "<group>";
+		};
+		A00000000000000000000013 /* Presentation */ = {
+			isa = PBXGroup;
+			children = (
+				A00000000000000000000622 /* BasicsListViewController.h */,
+				A00000000000000000000623 /* BasicsListViewController.m */,
+			);
+			path = Presentation;
+			sourceTree = "<group>";
+		};
+		A00000000000000000000014 /* Relationships */ = {
+			isa = PBXGroup;
+			children = (
+				A00000000000000000000015 /* Presentation */,
+			);
+			path = Relationships;
+			sourceTree = "<group>";
+		};
+		A00000000000000000000015 /* Presentation */ = {
+			isa = PBXGroup;
+			children = (
+				A00000000000000000000624 /* RelationshipsListViewController.h */,
+				A00000000000000000000625 /* RelationshipsListViewController.m */,
+			);
+			path = Presentation;
+			sourceTree = "<group>";
+		};
+		A00000000000000000000016 /* Lifecycle */ = {
+			isa = PBXGroup;
+			children = (
+				A00000000000000000000017 /* Presentation */,
+			);
+			path = Lifecycle;
+			sourceTree = "<group>";
+		};
+		A00000000000000000000017 /* Presentation */ = {
+			isa = PBXGroup;
+			children = (
+				A00000000000000000000626 /* LifecycleListViewController.h */,
+				A00000000000000000000627 /* LifecycleListViewController.m */,
+			);
+			path = Presentation;
+			sourceTree = "<group>";
+		};
+		A00000000000000000000018 /* App */ = {
+			isa = PBXGroup;
+			children = (
+				A00000000000000000000604 /* AppDelegate.h */,
+				A00000000000000000000605 /* AppDelegate.m */,
+				A00000000000000000000603 /* main.m */,
+				A00000000000000000000606 /* Info.plist */,
+			);
+			path = App;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
-		AAA00020000 /* MRR Project */ = {
+		A00000000000000000000100 /* MRR Project */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = AAA00030000 /* Build configuration list for PBXNativeTarget "MRR Project" */;
+			buildConfigurationList = A00000000000000000000200 /* Build configuration list for PBXNativeTarget "MRR Project" */;
 			buildPhases = (
-				AAA00021000 /* Sources */,
-				AAA00005000 /* Frameworks */,
-				AAA00022000 /* Resources */,
+				A00000000000000000000400 /* Sources */,
+				A00000000000000000000401 /* Frameworks */,
+				A00000000000000000000402 /* Resources */,
 			);
 			buildRules = (
 			);
@@ -118,24 +349,46 @@
 			);
 			name = "MRR Project";
 			productName = "MRR Project";
-			productReference = AAA00000000 /* MRR Project.app */;
+			productReference = A00000000000000000000600 /* MRR Project.app */;
 			productType = "com.apple.product-type.application";
+		};
+		A00000000000000000000101 /* MRR ProjectTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = A00000000000000000000201 /* Build configuration list for PBXNativeTarget "MRR ProjectTests" */;
+			buildPhases = (
+				A00000000000000000000403 /* Sources */,
+				A00000000000000000000404 /* Frameworks */,
+				A00000000000000000000405 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				A00000000000000000000501 /* PBXTargetDependency */,
+			);
+			name = "MRR ProjectTests";
+			productName = "MRR ProjectTests";
+			productReference = A00000000000000000000601 /* MRR ProjectTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
 		};
 /* End PBXNativeTarget section */
 
 /* Begin PBXProject section */
-		AAA00040000 /* Project object */ = {
+		A00000000000000000000001 /* Project object */ = {
 			isa = PBXProject;
 			attributes = {
 				BuildIndependentTargetsInParallel = 1;
 				LastUpgradeCheck = 1500;
 				TargetAttributes = {
-					AAA00020000 = {
+					A00000000000000000000100 = {
 						CreatedOnToolsVersion = 15.0;
+					};
+					A00000000000000000000101 = {
+						CreatedOnToolsVersion = 15.0;
+						TestTargetID = A00000000000000000000100;
 					};
 				};
 			};
-			buildConfigurationList = AAA00050000 /* Build configuration list for PBXProject "MRR Project" */;
+			buildConfigurationList = A00000000000000000000202 /* Build configuration list for PBXProject "MRR Project" */;
 			compatibilityVersion = "Xcode 14.0";
 			developmentRegion = en;
 			hasScannedForEncodings = 0;
@@ -143,18 +396,26 @@
 				en,
 				Base,
 			);
-			mainGroup = AAA00010000;
-			productRefGroup = AAA00012000 /* Products */;
+			mainGroup = A00000000000000000000002;
+			productRefGroup = A00000000000000000000004 /* Products */;
 			projectDirPath = "";
 			projectRoot = "";
 			targets = (
-				AAA00020000 /* MRR Project */,
+				A00000000000000000000100 /* MRR Project */,
+				A00000000000000000000101 /* MRR ProjectTests */,
 			);
 		};
 /* End PBXProject section */
 
 /* Begin PBXResourcesBuildPhase section */
-		AAA00022000 /* Resources */ = {
+		A00000000000000000000402 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		A00000000000000000000405 /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -164,21 +425,53 @@
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
-		AAA00021000 /* Sources */ = {
+		A00000000000000000000400 /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				AAA00001001 /* main.m in Sources */,
-				AAA00002001 /* AppDelegate.m in Sources */,
-				AAA00003001 /* ViewController.m in Sources */,
-				EC7907152F0376A7000070AA /* BaseCoordinator.m in Sources */,
+				A00000000000000000000700 /* main.m in Sources */,
+				A00000000000000000000701 /* AppDelegate.m in Sources */,
+				A00000000000000000000702 /* MRRDemoCategory.m in Sources */,
+				A00000000000000000000703 /* MRRDemoSummary.m in Sources */,
+				A00000000000000000000704 /* MRRDemoSection.m in Sources */,
+				A00000000000000000000705 /* MRRDemoDetail.m in Sources */,
+				A00000000000000000000706 /* StaticMRRDemoRepository.m in Sources */,
+				A00000000000000000000707 /* LoadDemoListUseCase.m in Sources */,
+				A00000000000000000000708 /* LoadDemoDetailUseCase.m in Sources */,
+				A00000000000000000000709 /* DemoListPresenter.m in Sources */,
+				A0000000000000000000070A /* DemoDetailPresenter.m in Sources */,
+				A0000000000000000000070B /* DemoScreenFactory.m in Sources */,
+				A0000000000000000000070C /* DemoListViewController.m in Sources */,
+				A0000000000000000000070D /* DemoDetailViewController.m in Sources */,
+				A0000000000000000000070E /* BasicsListViewController.m in Sources */,
+				A0000000000000000000070F /* RelationshipsListViewController.m in Sources */,
+				A00000000000000000000710 /* LifecycleListViewController.m in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		A00000000000000000000403 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				A00000000000000000000711 /* RepositoryAndUseCaseTests.m in Sources */,
+				A00000000000000000000712 /* PresenterTests.m in Sources */,
+				A00000000000000000000713 /* DemoScreenFactoryTests.m in Sources */,
+				A00000000000000000000714 /* DemoListViewControllerTests.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXSourcesBuildPhase section */
 
+/* Begin PBXTargetDependency section */
+		A00000000000000000000501 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = A00000000000000000000100 /* MRR Project */;
+			targetProxy = A00000000000000000000500 /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
+
 /* Begin XCBuildConfiguration section */
-		AAA00060000 /* Debug */ = {
+		A00000000000000000000300 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
@@ -239,7 +532,7 @@
 			};
 			name = Debug;
 		};
-		AAA00060001 /* Release */ = {
+		A00000000000000000000301 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
@@ -294,11 +587,9 @@
 			};
 			name = Release;
 		};
-		AAA00070000 /* Debug */ = {
+		A00000000000000000000302 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
-				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = 2N64875GLV;
@@ -323,11 +614,9 @@
 			};
 			name = Debug;
 		};
-		AAA00070001 /* Release */ = {
+		A00000000000000000000303 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
-				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = 2N64875GLV;
@@ -352,28 +641,89 @@
 			};
 			name = Release;
 		};
+		A00000000000000000000304 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 2N64875GLV;
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 12.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = "com.bengidev.MRR-ProjectTests";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = YES;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/MRR Project.app/MRR Project";
+				TEST_TARGET_NAME = "MRR Project";
+			};
+			name = Debug;
+		};
+		A00000000000000000000305 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 2N64875GLV;
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 12.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = "com.bengidev.MRR-ProjectTests";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = YES;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/MRR Project.app/MRR Project";
+				TEST_TARGET_NAME = "MRR Project";
+			};
+			name = Release;
+		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
-		AAA00030000 /* Build configuration list for PBXNativeTarget "MRR Project" */ = {
+		A00000000000000000000200 /* Build configuration list for PBXNativeTarget "MRR Project" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
-				AAA00070000 /* Debug */,
-				AAA00070001 /* Release */,
+				A00000000000000000000302 /* Debug */,
+				A00000000000000000000303 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		AAA00050000 /* Build configuration list for PBXProject "MRR Project" */ = {
+		A00000000000000000000201 /* Build configuration list for PBXNativeTarget "MRR ProjectTests" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
-				AAA00060000 /* Debug */,
-				AAA00060001 /* Release */,
+				A00000000000000000000304 /* Debug */,
+				A00000000000000000000305 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		A00000000000000000000202 /* Build configuration list for PBXProject "MRR Project" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				A00000000000000000000300 /* Debug */,
+				A00000000000000000000301 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
 	};
-	rootObject = AAA00040000 /* Project object */;
+	rootObject = A00000000000000000000001 /* Project object */;
 }
