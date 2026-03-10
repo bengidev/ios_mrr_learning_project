@@ -39,6 +39,10 @@
 		A00000000000000000000722 /* LifecycleLoadDemoDetailUseCase.m in Sources */ = {isa = PBXBuildFile; fileRef = A00000000000000000000638 /* LifecycleLoadDemoDetailUseCase.m */; };
 		A00000000000000000000723 /* LifecycleListPresenter.m in Sources */ = {isa = PBXBuildFile; fileRef = A00000000000000000000639 /* LifecycleListPresenter.m */; };
 		A00000000000000000000724 /* LifecycleScreenFactory.m in Sources */ = {isa = PBXBuildFile; fileRef = A0000000000000000000063A /* LifecycleScreenFactory.m */; };
+		A00000000000000000000725 /* OnboardingStateController.m in Sources */ = {isa = PBXBuildFile; fileRef = A0000000000000000000064F /* OnboardingStateController.m */; };
+		A00000000000000000000726 /* OnboardingViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = A00000000000000000000651 /* OnboardingViewController.m */; };
+		A00000000000000000000727 /* MainMenuViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = A00000000000000000000653 /* MainMenuViewController.m */; };
+		A00000000000000000000728 /* AppLaunchFlowTests.m in Sources */ = {isa = PBXBuildFile; fileRef = A00000000000000000000654 /* AppLaunchFlowTests.m */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -120,6 +124,13 @@
 		A0000000000000000000064B /* LifecycleLoadDemoDetailUseCase.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = LifecycleLoadDemoDetailUseCase.h; sourceTree = "<group>"; };
 		A0000000000000000000064C /* LifecycleListPresenter.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = LifecycleListPresenter.h; sourceTree = "<group>"; };
 		A0000000000000000000064D /* LifecycleScreenFactory.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = LifecycleScreenFactory.h; sourceTree = "<group>"; };
+		A0000000000000000000064E /* OnboardingStateController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = OnboardingStateController.h; sourceTree = "<group>"; };
+		A0000000000000000000064F /* OnboardingStateController.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = OnboardingStateController.m; sourceTree = "<group>"; };
+		A00000000000000000000650 /* OnboardingViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = OnboardingViewController.h; sourceTree = "<group>"; };
+		A00000000000000000000651 /* OnboardingViewController.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = OnboardingViewController.m; sourceTree = "<group>"; };
+		A00000000000000000000652 /* MainMenuViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = MainMenuViewController.h; sourceTree = "<group>"; };
+		A00000000000000000000653 /* MainMenuViewController.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = MainMenuViewController.m; sourceTree = "<group>"; };
+		A00000000000000000000654 /* AppLaunchFlowTests.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = AppLaunchFlowTests.m; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -176,6 +187,7 @@
 				A00000000000000000000629 /* PresenterTests.m */,
 				A0000000000000000000062A /* DemoScreenFactoryTests.m */,
 				A0000000000000000000062B /* DemoListViewControllerTests.m */,
+				A00000000000000000000654 /* AppLaunchFlowTests.m */,
 			);
 			path = "MRR ProjectTests";
 			sourceTree = "<group>";
@@ -528,6 +540,12 @@
 			children = (
 				A00000000000000000000604 /* AppDelegate.h */,
 				A00000000000000000000605 /* AppDelegate.m */,
+				A0000000000000000000064E /* OnboardingStateController.h */,
+				A0000000000000000000064F /* OnboardingStateController.m */,
+				A00000000000000000000650 /* OnboardingViewController.h */,
+				A00000000000000000000651 /* OnboardingViewController.m */,
+				A00000000000000000000652 /* MainMenuViewController.h */,
+				A00000000000000000000653 /* MainMenuViewController.m */,
 				A00000000000000000000603 /* main.m */,
 				A00000000000000000000606 /* Info.plist */,
 			);
@@ -658,6 +676,9 @@
 				A00000000000000000000722 /* LifecycleLoadDemoDetailUseCase.m in Sources */,
 				A00000000000000000000723 /* LifecycleListPresenter.m in Sources */,
 				A00000000000000000000724 /* LifecycleScreenFactory.m in Sources */,
+				A00000000000000000000725 /* OnboardingStateController.m in Sources */,
+				A00000000000000000000726 /* OnboardingViewController.m in Sources */,
+				A00000000000000000000727 /* MainMenuViewController.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -669,6 +690,7 @@
 				A00000000000000000000712 /* PresenterTests.m in Sources */,
 				A00000000000000000000713 /* DemoScreenFactoryTests.m in Sources */,
 				A00000000000000000000714 /* DemoListViewControllerTests.m in Sources */,
+				A00000000000000000000728 /* AppLaunchFlowTests.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

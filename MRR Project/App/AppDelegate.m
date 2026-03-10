@@ -6,6 +6,9 @@
 //
 
 #import "AppDelegate.h"
+#import "MainMenuViewController.h"
+#import "OnboardingStateController.h"
+#import "OnboardingViewController.h"
 #include <UIKit/UIKit.h>
 #import "../Features/Basics/Data/BasicsDemoRepository.h"
 #import "../Features/Basics/Domain/UseCases/BasicsLoadDemoDetailUseCase.h"
@@ -23,11 +26,34 @@
 #import "../Features/Relationships/Presentation/Factories/RelationshipsScreenFactory.h"
 #import "../Features/Relationships/Presentation/ViewControllers/RelationshipsListViewController.h"
 
+@interface AppDelegate () <MainMenuViewControllerDelegate, OnboardingViewControllerDelegate>
+
+@property (nonatomic, retain) OnboardingStateController *onboardingStateController;
+
+@end
+
 @implementation AppDelegate
+
+- (instancetype)init {
+    OnboardingStateController *onboardingStateController = [[[OnboardingStateController alloc] initWithUserDefaults:[NSUserDefaults standardUserDefaults]] autorelease];
+    return [self initWithOnboardingStateController:onboardingStateController];
+}
+
+- (instancetype)initWithOnboardingStateController:(OnboardingStateController *)onboardingStateController {
+    NSParameterAssert(onboardingStateController != nil);
+
+    self = [super init];
+    if (self) {
+        _onboardingStateController = [onboardingStateController retain];
+    }
+
+    return self;
+}
 
 #pragma mark - Memory Management
 
 - (void)dealloc {
+    [_onboardingStateController release];
     [_window release];
     [super dealloc];
 }
@@ -36,8 +62,18 @@
 
 - (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions {
     self.window = [[[UIWindow alloc] initWithFrame:[[UIScreen mainScreen] bounds]] autorelease];
-    self.window.rootViewController = [self buildLearningExperienceTabBarControllerSelectingIndex:0];
-    [self.window makeKeyAndVisible];
+    UIViewController *initialRootViewController = nil;
+
+    if ([self.onboardingStateController hasCompletedOnboarding]) {
+        initialRootViewController = [self buildMainMenuViewController];
+    } else {
+        initialRootViewController = [self buildOnboardingViewController];
+    }
+
+    [self setRootViewController:initialRootViewController animated:NO];
+    if ([self shouldMakeWindowKeyAndVisible]) {
+        [self.window makeKeyAndVisible];
+    }
 
     return YES;
 }
@@ -60,6 +96,33 @@
 
 - (void)applicationWillTerminate:(UIApplication *)application {
     // Called when the application is about to terminate
+}
+
+#pragma mark - OnboardingViewControllerDelegate
+
+- (void)onboardingViewControllerDidFinish:(OnboardingViewController *)viewController {
+    [self.onboardingStateController markOnboardingCompleted];
+    [self setRootViewController:[self buildMainMenuViewController] animated:[self shouldAnimateRootTransitions]];
+}
+
+#pragma mark - MainMenuViewControllerDelegate
+
+- (void)mainMenuViewController:(MainMenuViewController *)viewController didSelectTabIndex:(NSUInteger)tabIndex {
+    [self setRootViewController:[self buildLearningExperienceTabBarControllerSelectingIndex:tabIndex] animated:[self shouldAnimateRootTransitions]];
+}
+
+#pragma mark - Root View Controller Builders
+
+- (UIViewController *)buildOnboardingViewController {
+    OnboardingViewController *viewController = [[[OnboardingViewController alloc] init] autorelease];
+    viewController.delegate = self;
+    return viewController;
+}
+
+- (UIViewController *)buildMainMenuViewController {
+    MainMenuViewController *viewController = [[[MainMenuViewController alloc] init] autorelease];
+    viewController.delegate = self;
+    return viewController;
 }
 
 - (UITabBarController *)buildLearningExperienceTabBarControllerSelectingIndex:(NSUInteger)selectedIndex {
@@ -105,6 +168,32 @@
     }
 
     return tabBarController;
+}
+
+- (void)setRootViewController:(UIViewController *)rootViewController animated:(BOOL)animated {
+    if (animated && self.window.rootViewController != nil) {
+        [UIView transitionWithView:self.window
+                          duration:0.25
+                           options:UIViewAnimationOptionTransitionCrossDissolve
+                        animations:^{
+                            BOOL animationsWereEnabled = [UIView areAnimationsEnabled];
+                            [UIView setAnimationsEnabled:NO];
+                            self.window.rootViewController = rootViewController;
+                            [UIView setAnimationsEnabled:animationsWereEnabled];
+                        }
+                        completion:nil];
+        return;
+    }
+
+    self.window.rootViewController = rootViewController;
+}
+
+- (BOOL)shouldAnimateRootTransitions {
+    return NSClassFromString(@"XCTestCase") == nil;
+}
+
+- (BOOL)shouldMakeWindowKeyAndVisible {
+    return NSClassFromString(@"XCTestCase") == nil;
 }
 
 @end

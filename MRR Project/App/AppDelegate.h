@@ -7,8 +7,12 @@
 
 #import <UIKit/UIKit.h>
 
+@class OnboardingStateController;
+
 @interface AppDelegate : UIResponder <UIApplicationDelegate>
 
 @property (nonatomic, retain) UIWindow *window;
+
+- (instancetype)initWithOnboardingStateController:(OnboardingStateController *)onboardingStateController;
 
 @end
