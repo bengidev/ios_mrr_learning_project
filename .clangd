@@ -1,0 +1,8 @@
+CompileFlags:
+  Add:
+    - -x
+    - objective-c
+    - -isysroot
+    - /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator.sdk
+    - -target
+    - arm64-apple-ios12.0-simulator

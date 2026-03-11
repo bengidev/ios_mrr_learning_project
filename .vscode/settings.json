@@ -6,8 +6,23 @@
   },
   "C_Cpp.default.intelliSenseMode": "macos-clang-arm64",
   "C_Cpp.default.compilerPath": "/usr/bin/clang",
+  "C_Cpp.default.compilerArgs": [
+    "-isysroot",
+    "/Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator.sdk",
+    "-target",
+    "arm64-apple-ios12.0-simulator"
+  ],
+  "C_Cpp.intelliSenseEngine": "disabled",
+  "clangd.enable": true,
   "C_Cpp.default.cStandard": "c17",
   "C_Cpp.default.cppStandard": "c++17",
+  "swift.sourcekit-lsp.serverArguments": [
+    "--default-workspace-type",
+    "buildServer"
+  ],
+  "swift.sourcekit-lsp.supported-languages": [
+    "swift"
+  ],
   "editor.formatOnSave": false,
   "[objective-c]": {
     "editor.tabSize": 4,

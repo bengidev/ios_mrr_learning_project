@@ -1,7 +1,7 @@
 {
 	"name": "xcode build server",
-	"version": "0.2",
-	"bspVersion": "2.0",
+	"version": "1.3.0",
+	"bspVersion": "2.2.0",
 	"languages": [
 		"c",
 		"cpp",
@@ -12,8 +12,7 @@
 	"argv": [
 		"/opt/homebrew/bin/xcode-build-server"
 	],
-	"workspace": "/Users/enbmacmini/Documents/iOS Projects/MRR_Learning_Project/MRR Project.xcodeproj/project.xcworkspace",
-	"build_root": "/Users/enbmacmini/Library/Developer/Xcode/DerivedData/MRR_Project-apkpztzqusytsucbpccamrwgdjfn",
+	"build_root": "/Users/beng/Documents/iOS Projects/iOS MRR Learning Project/ios_mrr_learning_project/.derivedData",
 	"scheme": "MRR Project",
 	"kind": "xcode"
 }

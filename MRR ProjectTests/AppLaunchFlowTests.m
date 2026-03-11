@@ -1,13 +1,12 @@
 #import <XCTest/XCTest.h>
 #import "../MRR Project/App/AppDelegate.h"
 #import "../MRR Project/App/MainMenuViewController.h"
-#import "../MRR Project/App/OnboardingStateController.h"
-#import "../MRR Project/App/OnboardingViewController.h"
+#import "../MRR Project/Features/Onboarding/Data/OnboardingStateController.h"
+#import "../MRR Project/Features/Onboarding/Presentation/ViewControllers/OnboardingViewController.h"
 
 @interface AppDelegate (Testing)
 
 - (void)onboardingViewControllerDidFinish:(OnboardingViewController *)viewController;
-- (void)mainMenuViewController:(MainMenuViewController *)viewController didSelectTabIndex:(NSUInteger)tabIndex;
 
 @end
 
@@ -64,21 +63,14 @@
     XCTAssertTrue([appDelegate.window.rootViewController isKindOfClass:[MainMenuViewController class]]);
 }
 
-- (void)testMainMenuSelectionShowsLearningTabsWithMatchingSelectedIndex {
+- (void)testReturningUserDoesNotSeeTabBarController {
     OnboardingStateController *stateController = [[OnboardingStateController alloc] initWithUserDefaults:self.userDefaults];
     [stateController markOnboardingCompleted];
 
     AppDelegate *appDelegate = [self makeAppDelegate];
     XCTAssertTrue([appDelegate application:[UIApplication sharedApplication] didFinishLaunchingWithOptions:nil]);
 
-    MainMenuViewController *mainMenuViewController = (MainMenuViewController *)appDelegate.window.rootViewController;
-    [appDelegate mainMenuViewController:mainMenuViewController didSelectTabIndex:2];
-
-    XCTAssertTrue([appDelegate.window.rootViewController isKindOfClass:[UITabBarController class]]);
-
-    UITabBarController *tabBarController = (UITabBarController *)appDelegate.window.rootViewController;
-    XCTAssertEqual(tabBarController.selectedIndex, 2U);
-    XCTAssertEqual(tabBarController.viewControllers.count, 3U);
+    XCTAssertFalse([appDelegate.window.rootViewController isKindOfClass:[UITabBarController class]]);
 }
 
 - (AppDelegate *)makeAppDelegate {

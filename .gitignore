@@ -4,6 +4,7 @@
 !*.xcworkspace/contents.xcworkspacedata
 xcuserdata/
 DerivedData/
+.derivedData/
 *.hmap
 *.ipa
 *.dSYM.zip
