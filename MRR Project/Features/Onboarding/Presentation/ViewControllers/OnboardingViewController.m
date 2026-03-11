@@ -1,4 +1,5 @@
 #import "OnboardingViewController.h"
+#include <UIKit/UIKit.h>
 
 @implementation OnboardingViewController
 
@@ -9,7 +10,7 @@
     self.view.backgroundColor = [UIColor whiteColor];
     self.view.accessibilityIdentifier = @"onboarding.view";
 
-    UIStackView *stackView = [[[UIStackView alloc] init] autorelease];
+    UIStackView* stackView = [[[UIStackView alloc] init] autorelease];
     stackView.axis = UILayoutConstraintAxisVertical;
     stackView.spacing = 14.0;
     stackView.alignment = UIStackViewAlignmentFill;
@@ -22,20 +23,21 @@
         [stackView.trailingAnchor constraintEqualToAnchor:self.view.trailingAnchor constant:-24.0]
     ]];
 
-    UILabel *titleLabel = [self labelWithText:@"Welcome"
+    UILabel* titleLabel = [self labelWithText:@"Welcome"
                                          font:[UIFont boldSystemFontOfSize:30.0]
                                         color:[UIColor blackColor]];
     titleLabel.textAlignment = NSTextAlignmentCenter;
     titleLabel.accessibilityIdentifier = @"onboarding.titleLabel";
     [stackView addArrangedSubview:titleLabel];
 
-    UILabel *summaryLabel = [self labelWithText:@"This is the first-launch onboarding screen. Tap the button below to continue into the app."
-                                           font:[UIFont systemFontOfSize:17.0]
-                                          color:[UIColor darkGrayColor]];
+    UILabel* summaryLabel = [self
+        labelWithText:@"This is the first-launch onboarding screen. Tap the button below to continue into the app."
+                 font:[UIFont systemFontOfSize:17.0]
+                color:[UIColor darkGrayColor]];
     summaryLabel.textAlignment = NSTextAlignmentCenter;
     [stackView addArrangedSubview:summaryLabel];
 
-    UIButton *primaryButton = [UIButton buttonWithType:UIButtonTypeSystem];
+    UIButton* primaryButton = [UIButton buttonWithType:UIButtonTypeSystem];
     primaryButton.translatesAutoresizingMaskIntoConstraints = NO;
     primaryButton.backgroundColor = [UIColor blackColor];
     primaryButton.layer.cornerRadius = 12.0;
@@ -44,23 +46,18 @@
     primaryButton.titleLabel.font = [UIFont boldSystemFontOfSize:18.0];
     [primaryButton setTitle:@"Continue" forState:UIControlStateNormal];
     [primaryButton setTitleColor:[UIColor whiteColor] forState:UIControlStateNormal];
-    [primaryButton addTarget:self
-                      action:@selector(didTapPrimaryButton)
-            forControlEvents:UIControlEventTouchUpInside];
+    [primaryButton addTarget:self action:@selector(didTapPrimaryButton) forControlEvents:UIControlEventTouchUpInside];
     [stackView addArrangedSubview:primaryButton];
-    [NSLayoutConstraint activateConstraints:@[
-        [primaryButton.heightAnchor constraintGreaterThanOrEqualToConstant:56.0]
-    ]];
+    [NSLayoutConstraint
+        activateConstraints:@[ [primaryButton.heightAnchor constraintGreaterThanOrEqualToConstant:56.0] ]];
 }
 
 - (void)didTapPrimaryButton {
     [self.delegate onboardingViewControllerDidFinish:self];
 }
 
-- (UILabel *)labelWithText:(NSString *)text
-                      font:(UIFont *)font
-                     color:(UIColor *)color {
-    UILabel *label = [[[UILabel alloc] init] autorelease];
+- (UILabel*)labelWithText:(NSString*)text font:(UIFont*)font color:(UIColor*)color {
+    UILabel* label = [[[UILabel alloc] init] autorelease];
     label.text = text;
     label.font = font;
     label.textColor = color;

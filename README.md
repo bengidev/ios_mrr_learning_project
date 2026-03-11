@@ -39,6 +39,12 @@ The active unit-test coverage focuses on the root flow:
 - returning users go directly to the main menu
 - the app no longer routes into a tab-bar-based learning flow
 
+## VSCode Save Behavior
+
+- Objective-C and Objective-C++ files format automatically on `Save` and `Save All` through `clangd` and the tracked [.clang-format](/Users/beng/Documents/iOS%20Projects/iOS%20MRR%20Learning%20Project/ios_mrr_learning_project/.clang-format) file.
+- Syntax diagnostics come from `clangd` directly in the editor and `Problems` panel.
+- The heavier project-wide static analyzer remains manual through `./scripts/lint-objc.sh`; it is intentionally not bound to every save.
+
 ## Notes
 
 - The app target intentionally keeps `CLANG_ENABLE_OBJC_ARC = NO`.

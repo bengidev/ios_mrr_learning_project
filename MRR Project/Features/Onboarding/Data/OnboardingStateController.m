@@ -31,7 +31,7 @@ NSString *const MRRHasCompletedOnboardingDefaultsKey = @"com.mrrlearning.hasComp
 }
 
 - (void)markOnboardingCompleted {
-    [self.userDefaults setBool:YES forKey:MRRHasCompletedOnboardingDefaultsKey];
+[self.userDefaults setBool:YES forKey:MRRHasCompletedOnboardingDefaultsKey];
 }
 
 @end
