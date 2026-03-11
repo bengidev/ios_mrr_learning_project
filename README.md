@@ -13,7 +13,9 @@ Both screens are intentionally simple placeholders for now.
 ## Project Structure
 
 - `MRR Project/App`
-  Root app wiring, `AppDelegate`, `main.m`, `Info.plist`, and the simple `MainMenuViewController`
+  Root app wiring, `AppDelegate`, `main.m`, and the simple `MainMenuViewController`
+- `MRR Project/Resources`
+  Shared application resources, including `Info.plist` and `Assets.xcassets`
 - `MRR Project/Features/Onboarding`
   First-launch state persistence and onboarding UI
 - `MRR ProjectTests`
@@ -44,6 +46,11 @@ The active unit-test coverage focuses on the root flow:
 - Objective-C and Objective-C++ files format automatically on `Save` and `Save All` through `clangd` and the tracked [.clang-format](/Users/beng/Documents/iOS%20Projects/iOS%20MRR%20Learning%20Project/ios_mrr_learning_project/.clang-format) file.
 - Syntax diagnostics come from `clangd` directly in the editor and `Problems` panel.
 - The heavier project-wide static analyzer remains manual through `./scripts/lint-objc.sh`; it is intentionally not bound to every save.
+
+## Assets
+
+- `MRR Project/Resources/Assets.xcassets` is the active asset catalog for the app icon, named colors, and the onboarding illustration.
+- `swift scripts/generate-assets.swift` regenerates the current placeholder assets if they need to be refreshed.
 
 ## Notes
 

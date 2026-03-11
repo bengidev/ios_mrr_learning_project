@@ -6,7 +6,7 @@ NS_ASSUME_NONNULL_BEGIN
 
 @protocol OnboardingViewControllerDelegate <NSObject>
 
-- (void)onboardingViewControllerDidFinish:(OnboardingViewController *)viewController;
+- (void)onboardingViewControllerDidFinish:(OnboardingViewController*)viewController;
 
 @end
 

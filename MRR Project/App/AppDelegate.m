@@ -51,8 +51,9 @@
 - (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions {
     self.window = [[[UIWindow alloc] initWithFrame:[[UIScreen mainScreen] bounds]] autorelease];
     UIViewController *initialRootViewController = nil;
+    BOOL hasCompletedOnboarding = [self.onboardingStateController hasCompletedOnboarding];
 
-    if ([self.onboardingStateController hasCompletedOnboarding]) {
+    if (hasCompletedOnboarding) {
         initialRootViewController = [self buildMainMenuViewController];
     } else {
         initialRootViewController = [self buildOnboardingViewController];

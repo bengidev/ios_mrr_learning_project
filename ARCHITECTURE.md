@@ -9,6 +9,10 @@ The app now contains only two user-facing screens:
 - `OnboardingViewController` on first launch
 - `MainMenuViewController` after onboarding has been completed
 
+The app shell also owns one asset catalog for shared visual resources:
+
+- `Resources/Assets.xcassets` for `AppIcon`, named colors, and the onboarding illustration
+
 ## Executive Summary
 
 The application is a small state-driven iOS app centered on one persisted boolean: whether onboarding has already been completed.
@@ -20,7 +24,8 @@ The application is a small state-driven iOS app centered on one persisted boolea
 ```mermaid
 flowchart TB
   main["App/main.m<br/>manual NSAutoreleasePool + UIApplicationMain"]
-  plist["App/Info.plist"]
+  plist["Resources/Info.plist"]
+  assets["Resources/Assets.xcassets"]
   app["App/AppDelegate<br/>composition root + root flow"]
   onboardingState["Features/Onboarding/Data/OnboardingStateController"]
   onboardingVC["Features/Onboarding/Presentation/OnboardingViewController"]
@@ -29,6 +34,8 @@ flowchart TB
 
   main --> app
   plist --> app
+  assets --> onboardingVC
+  assets --> mainMenuVC
   app --> onboardingState
   app --> onboardingVC
   onboardingVC -.delegate callback.-> app
@@ -139,6 +146,8 @@ classDiagram
 | `MRR Project/App/main.m` | Application bootstrap with manual autorelease pool | Starts UIKit lifecycle |
 | `MRR Project/App/AppDelegate.h` | Public app delegate contract | Exposes injectable initializer for tests |
 | `MRR Project/App/AppDelegate.m` | Composition root and root-controller switching | Depends on onboarding state and onboarding delegate callback |
+| `MRR Project/Resources/Info.plist` | Application metadata and launch configuration | Referenced directly by build settings |
+| `MRR Project/Resources/Assets.xcassets` | Shared app icon, named colors, and onboarding illustration | Used by the current programmatic UI |
 | `MRR Project/App/MainMenuViewController.h` | Declares simple post-onboarding screen | No navigation responsibilities |
 | `MRR Project/App/MainMenuViewController.m` | Renders simple placeholder main menu | Installed directly as root controller |
 | `MRR Project/Features/Onboarding/Data/OnboardingStateController.h` | Declares onboarding persistence API | Used by `AppDelegate` |
@@ -156,6 +165,8 @@ The runtime dependency chain is intentionally small:
 `AppDelegate -> OnboardingViewController -> delegate callback -> AppDelegate`
 
 `AppDelegate -> MainMenuViewController`
+
+`Assets.xcassets -> OnboardingViewController / MainMenuViewController`
 
 There is no tab bar, no feature repository graph, and no shared demo infrastructure anymore.
 
