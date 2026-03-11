@@ -6,8 +6,8 @@
   [super viewDidLoad];
 
   self.title = @"Main Menus";
-  self.view.backgroundColor = [self namedColor:@"CanvasBackground" fallback:[UIColor whiteColor]];
-  self.view.tintColor = [self namedColor:@"AccentColor" fallback:self.view.tintColor];
+  self.view.backgroundColor = [self namedColor:@"BackgroundColor" fallback:[UIColor whiteColor]];
+  self.view.tintColor = [self namedColor:@"TextPrimaryColor" fallback:self.view.tintColor];
   self.view.accessibilityIdentifier = @"mainMenu.view";
 
   UIStackView* stackView = [self buildStackView];
@@ -35,7 +35,7 @@
 - (UILabel*)buildTitleLabel {
   UILabel* label = [self labelWithText:@"Main Menus"
                                   font:[UIFont boldSystemFontOfSize:28.0]
-                                 color:[self namedColor:@"PrimaryText" fallback:[UIColor blackColor]]];
+                                 color:[self namedColor:@"TextPrimaryColor" fallback:[UIColor blackColor]]];
   label.textAlignment = NSTextAlignmentCenter;
   label.accessibilityIdentifier = @"mainMenu.titleLabel";
   return label;
@@ -44,7 +44,7 @@
 - (UILabel*)buildSummaryLabel {
   UILabel* label = [self labelWithText:@"Onboarding is complete. This screen is a simple placeholder for the next app flow."
                                   font:[UIFont systemFontOfSize:17.0]
-                                 color:[self namedColor:@"SecondaryText" fallback:[UIColor darkGrayColor]]];
+                                 color:[self namedColor:@"TextSecondaryColor" fallback:[UIColor darkGrayColor]]];
   label.textAlignment = NSTextAlignmentCenter;
   label.accessibilityIdentifier = @"mainMenu.summaryLabel";
   return label;

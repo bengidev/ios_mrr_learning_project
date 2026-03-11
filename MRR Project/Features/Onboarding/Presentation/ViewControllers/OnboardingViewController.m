@@ -8,8 +8,8 @@
   [super viewDidLoad];
 
   self.title = @"Onboarding";
-  self.view.backgroundColor = [self namedColor:@"CanvasBackground" fallback:[UIColor whiteColor]];
-  self.view.tintColor = [self namedColor:@"AccentColor" fallback:self.view.tintColor];
+  self.view.backgroundColor = [self namedColor:@"BackgroundColor" fallback:[UIColor whiteColor]];
+  self.view.tintColor = [self namedColor:@"TextPrimaryColor" fallback:self.view.tintColor];
   self.view.accessibilityIdentifier = @"onboarding.view";
 
   UIStackView* stackView = [self buildStackView];
@@ -27,7 +27,7 @@
 
   UILabel* titleLabel = [self labelWithText:@"Welcome"
                                        font:[UIFont boldSystemFontOfSize:30.0]
-                                      color:[self namedColor:@"PrimaryText" fallback:[UIColor blackColor]]];
+                                      color:[self namedColor:@"TextPrimaryColor" fallback:[UIColor blackColor]]];
   titleLabel.textAlignment = NSTextAlignmentCenter;
   titleLabel.accessibilityIdentifier = @"onboarding.titleLabel";
   [stackView addArrangedSubview:titleLabel];
@@ -35,7 +35,7 @@
   UILabel* summaryLabel = [self labelWithText:@"This is the first-launch onboarding screen. Tap "
                                               @"the button below to continue into the app."
                                          font:[UIFont systemFontOfSize:17.0]
-                                        color:[self namedColor:@"SecondaryText" fallback:[UIColor darkGrayColor]]];
+                                        color:[self namedColor:@"TextSecondaryColor" fallback:[UIColor darkGrayColor]]];
   summaryLabel.textAlignment = NSTextAlignmentCenter;
   [stackView addArrangedSubview:summaryLabel];
 
@@ -58,9 +58,9 @@
 }
 
 - (UIImageView*)buildIllustrationView {
-  UIImageView* imageView = [[[UIImageView alloc] initWithImage:[UIImage imageNamed:@"OnboardingIllustration"]] autorelease];
+  UIImageView* imageView = [[[UIImageView alloc] initWithImage:[UIImage imageNamed:@"OnboardingImage"]] autorelease];
   imageView.translatesAutoresizingMaskIntoConstraints = NO;
-  imageView.backgroundColor = [self namedColor:@"CardBackground" fallback:[UIColor clearColor]];
+  imageView.backgroundColor = [[self namedColor:@"TextSecondaryColor" fallback:[UIColor clearColor]] colorWithAlphaComponent:0.12];
   imageView.layer.cornerRadius = 28.0;
   imageView.clipsToBounds = YES;
   imageView.contentMode = UIViewContentModeScaleAspectFit;
@@ -71,13 +71,13 @@
 - (UIButton*)buildPrimaryButton {
   UIButton* button = [UIButton buttonWithType:UIButtonTypeSystem];
   button.translatesAutoresizingMaskIntoConstraints = NO;
-  button.backgroundColor = [self namedColor:@"PrimaryAction" fallback:[UIColor blackColor]];
+  button.backgroundColor = [self namedColor:@"TextPrimaryColor" fallback:[UIColor blackColor]];
   button.layer.cornerRadius = 12.0;
   button.contentEdgeInsets = UIEdgeInsetsMake(16.0, 20.0, 16.0, 20.0);
   button.accessibilityIdentifier = @"onboarding.primaryButton";
   button.titleLabel.font = [UIFont boldSystemFontOfSize:18.0];
   [button setTitle:@"Continue" forState:UIControlStateNormal];
-  [button setTitleColor:[UIColor whiteColor] forState:UIControlStateNormal];
+  [button setTitleColor:[self namedColor:@"BackgroundColor" fallback:[UIColor whiteColor]] forState:UIControlStateNormal];
   [button addTarget:self action:@selector(didTapPrimaryButton) forControlEvents:UIControlEventTouchUpInside];
   return button;
 }
