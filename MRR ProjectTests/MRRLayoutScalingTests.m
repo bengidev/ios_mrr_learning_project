@@ -7,31 +7,25 @@
 
 @implementation MRRLayoutScalingTests
 
-- (void)testPureScreenScalingUsesRawViewportRatios {
+- (void)testScreenScalingUsesRawViewportRatios {
   CGSize compactViewport = CGSizeMake(320.0, 568.0);
 
-  CGFloat widthScaledValue = MRRLayoutScaledValue(100.0, compactViewport, MRRLayoutScaleAxisWidth,
-                                                  MRRLayoutScalingModePureScreenScaling);
-  CGFloat heightScaledValue = MRRLayoutScaledValue(100.0, compactViewport, MRRLayoutScaleAxisHeight,
-                                                   MRRLayoutScalingModePureScreenScaling);
+  CGFloat widthScaledValue = MRRLayoutScaledValue(100.0, compactViewport, MRRLayoutScaleAxisWidth);
+  CGFloat heightScaledValue = MRRLayoutScaledValue(100.0, compactViewport, MRRLayoutScaleAxisHeight);
 
   XCTAssertEqualWithAccuracy(widthScaledValue, 82.1, 0.1);
   XCTAssertEqualWithAccuracy(heightScaledValue, 67.3, 0.1);
 }
 
-- (void)testGuardedFluidScalingClampsViewportRatios {
-  CGSize compactViewport = CGSizeMake(320.0, 568.0);
+- (void)testScreenScalingUsesMinDimensionRatio {
+  CGSize expandedViewport = CGSizeMake(430.0, 932.0);
 
-  CGFloat widthScaledValue = MRRLayoutScaledValue(100.0, compactViewport, MRRLayoutScaleAxisWidth,
-                                                  MRRLayoutScalingModeGuardedFluidScaling);
-  CGFloat heightScaledValue = MRRLayoutScaledValue(100.0, compactViewport, MRRLayoutScaleAxisHeight,
-                                                   MRRLayoutScalingModeGuardedFluidScaling);
+  CGFloat scaledValue = MRRLayoutScaledValue(100.0, expandedViewport, MRRLayoutScaleAxisMinDimension);
 
-  XCTAssertEqualWithAccuracy(widthScaledValue, 92.0, 0.1);
-  XCTAssertEqualWithAccuracy(heightScaledValue, 90.0, 0.1);
+  XCTAssertEqualWithAccuracy(scaledValue, 110.3, 0.1);
 }
 
-- (void)testGuardedFluidInterpolationStaysDeterministicAcrossCommonViewports {
+- (void)testInterpolationHelperRemainsDeterministicAcrossCommonViewports {
   NSArray<NSValue *> *viewports = @[
     [NSValue valueWithCGSize:CGSizeMake(375.0, 812.0)],
     [NSValue valueWithCGSize:CGSizeMake(414.0, 896.0)],
@@ -44,12 +38,6 @@
     CGFloat inset = MRRLayoutRoundedMetric(MRRLayoutInterpolatedMetricForValue(viewport.width, 320.0, 414.0, 20.0, 24.0));
     XCTAssertEqualWithAccuracy(inset, expectedInsets[index].doubleValue, 0.1);
   }
-}
-
-- (void)testLaunchArgumentsResolvePureMode {
-  NSArray<NSString *> *arguments = @[ @"AppBinary", MRRLayoutScalingModeLaunchArgument, @"pure" ];
-
-  XCTAssertEqual(MRRLayoutScalingModeFromArguments(arguments), MRRLayoutScalingModePureScreenScaling);
 }
 
 @end

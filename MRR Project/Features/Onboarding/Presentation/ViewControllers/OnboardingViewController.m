@@ -13,6 +13,7 @@ static NSString *const MRROnboardingBrandMarkImageName = @"OnboardingBrandMark";
 static NSString *const MRROnboardingBrandMarkOutlineImageName = @"OnboardingBrandMarkOutline";
 static NSInteger const MRROnboardingAuthButtonIconTag = 101;
 static NSInteger const MRROnboardingAuthButtonTitleTag = 102;
+static CGFloat const MRRCarouselSingleRowSpacingPadding = 32.0;
 
 static UIColor *MRRDynamicFallbackColor(UIColor *lightColor, UIColor *darkColor) {
   if (@available(iOS 13.0, *)) {
@@ -81,8 +82,6 @@ static UIColor *MRRNamedColor(NSString *name, UIColor *lightColor, UIColor *dark
 @property(nonatomic, assign) NSInteger currentCarouselItemIndex;
 @property(nonatomic, assign, getter=isDetailPresented) BOOL detailPresented;
 @property(nonatomic, assign, getter=isViewVisible) BOOL viewVisible;
-@property(nonatomic, assign, getter=isCompactLayoutActive) BOOL compactLayoutActive;
-@property(nonatomic, assign) MRRLayoutScalingMode layoutScalingMode;
 
 - (NSArray<OnboardingRecipe *> *)loadRecipes;
 - (void)buildViewHierarchy;
@@ -109,6 +108,9 @@ static UIColor *MRRNamedColor(NSString *name, UIColor *lightColor, UIColor *dark
 - (NSAttributedString *)signinAttributedTextWithBodyFontSize:(CGFloat)bodyFontSize;
 - (UICollectionViewFlowLayout *)carouselLayout;
 - (void)updateCarouselLayoutIfNeeded;
+- (CGSize)carouselItemSizeForAvailableWidth:(CGFloat)availableWidth
+                          availableHeight:(CGFloat)availableHeight
+                               lineSpacing:(CGFloat)lineSpacing;
 - (NSInteger)virtualCarouselItemCount;
 - (NSInteger)recipeIndexForCarouselItemIndex:(NSInteger)itemIndex;
 - (NSInteger)middleCarouselItemIndexForRecipeIndex:(NSInteger)recipeIndex;
@@ -132,21 +134,15 @@ static UIColor *MRRNamedColor(NSString *name, UIColor *lightColor, UIColor *dark
 - (instancetype)init {
   OnboardingStateController *stateController =
       [[[OnboardingStateController alloc] initWithUserDefaults:[NSUserDefaults standardUserDefaults]] autorelease];
-  return [self initWithStateController:stateController layoutScalingMode:MRRLayoutScalingModeGuardedFluidScaling];
+  return [self initWithStateController:stateController];
 }
 
 - (instancetype)initWithStateController:(OnboardingStateController *)stateController {
-  return [self initWithStateController:stateController layoutScalingMode:MRRLayoutScalingModeGuardedFluidScaling];
-}
-
-- (instancetype)initWithStateController:(OnboardingStateController *)stateController
-                       layoutScalingMode:(MRRLayoutScalingMode)layoutScalingMode {
   NSParameterAssert(stateController != nil);
 
   self = [super initWithNibName:nil bundle:nil];
   if (self) {
     _stateController = [stateController retain];
-    _layoutScalingMode = layoutScalingMode;
     _recipes = [[self loadRecipes] copy];
     _currentRecipeIndex = 0;
     if (_recipes.count > 0) {
@@ -215,6 +211,7 @@ static UIColor *MRRNamedColor(NSString *name, UIColor *lightColor, UIColor *dark
   self.view.accessibilityIdentifier = @"onboarding.view";
 
   [self buildViewHierarchy];
+  [self updateLayoutMetricsIfNeeded];
 }
 
 - (void)viewDidAppear:(BOOL)animated {
@@ -354,6 +351,8 @@ static UIColor *MRRNamedColor(NSString *name, UIColor *lightColor, UIColor *dark
   UICollectionViewFlowLayout *layout = [[[UICollectionViewFlowLayout alloc] init] autorelease];
   layout.scrollDirection = UICollectionViewScrollDirectionHorizontal;
   layout.minimumLineSpacing = 18.0;
+  layout.minimumInteritemSpacing = 1000.0;
+  layout.estimatedItemSize = CGSizeZero;
   layout.sectionInset = UIEdgeInsetsZero;
 
   UICollectionView *collectionView = [[[UICollectionView alloc] initWithFrame:CGRectZero collectionViewLayout:layout] autorelease];
@@ -362,6 +361,8 @@ static UIColor *MRRNamedColor(NSString *name, UIColor *lightColor, UIColor *dark
   collectionView.showsHorizontalScrollIndicator = NO;
   collectionView.decelerationRate = UIScrollViewDecelerationRateFast;
   collectionView.clipsToBounds = NO;
+  [collectionView setContentCompressionResistancePriority:UILayoutPriorityRequired forAxis:UILayoutConstraintAxisVertical];
+  [collectionView setContentHuggingPriority:UILayoutPriorityRequired forAxis:UILayoutConstraintAxisVertical];
   collectionView.dataSource = self;
   collectionView.delegate = self;
   collectionView.accessibilityIdentifier = @"onboarding.carouselCollectionView";
@@ -689,69 +690,35 @@ static UIColor *MRRNamedColor(NSString *name, UIColor *lightColor, UIColor *dark
   CGFloat buttonTitleFontSize = 0.0;
   CGFloat desiredLineSpacing = 0.0;
 
-  if (self.layoutScalingMode == MRRLayoutScalingModePureScreenScaling) {
-    horizontalInset = MRRLayoutScaledValue(22.0, viewportSize, MRRLayoutScaleAxisWidth, self.layoutScalingMode);
-    contentWidth = MAX(viewportWidth - (horizontalInset * 2.0), 0.0);
-    stackSpacing = MRRLayoutScaledValue(12.0, viewportSize, MRRLayoutScaleAxisHeight, self.layoutScalingMode);
-    topInset = MRRLayoutScaledValue(16.0, viewportSize, MRRLayoutScaleAxisHeight, self.layoutScalingMode);
-    bottomInset = MRRLayoutScaledValue(16.0, viewportSize, MRRLayoutScaleAxisHeight, self.layoutScalingMode);
-    spacerHeight = MRRLayoutScaledValue(12.0, viewportSize, MRRLayoutScaleAxisHeight, self.layoutScalingMode);
-    iconContainerSize = MRRLayoutScaledValue(66.0, viewportSize, MRRLayoutScaleAxisMinDimension, self.layoutScalingMode);
-    iconTopInset = MRRLayoutScaledValue(6.0, viewportSize, MRRLayoutScaleAxisHeight, self.layoutScalingMode);
-    iconBottomInset = MRRLayoutScaledValue(13.0, viewportSize, MRRLayoutScaleAxisHeight, self.layoutScalingMode);
-    iconImageSize = MRRLayoutScaledValue(36.0, viewportSize, MRRLayoutScaleAxisMinDimension, self.layoutScalingMode);
-    titleFontSize = MRRLayoutScaledValue(42.0, viewportSize, MRRLayoutScaleAxisWidth, self.layoutScalingMode);
-    titleKerning = MRRLayoutScaledValue(0.8, viewportSize, MRRLayoutScaleAxisWidth, self.layoutScalingMode);
-    subtitleFontSize = MRRLayoutScaledValue(16.0, viewportSize, MRRLayoutScaleAxisWidth, self.layoutScalingMode);
-    captionFontSize = MRRLayoutScaledValue(12.5, viewportSize, MRRLayoutScaleAxisWidth, self.layoutScalingMode);
-    captionKerning = MRRLayoutScaledValue(2.4, viewportSize, MRRLayoutScaleAxisWidth, self.layoutScalingMode);
-    benefitTitleFontSize = MRRLayoutScaledValue(23.5, viewportSize, MRRLayoutScaleAxisWidth, self.layoutScalingMode);
-    benefitBodyFontSize = MRRLayoutScaledValue(14.5, viewportSize, MRRLayoutScaleAxisWidth, self.layoutScalingMode);
-    benefitTitleHeight = MRRLayoutScaledValue(47.0, viewportSize, MRRLayoutScaleAxisHeight, self.layoutScalingMode);
-    benefitBodyHeight = MRRLayoutScaledValue(31.0, viewportSize, MRRLayoutScaleAxisHeight, self.layoutScalingMode);
-    carouselHeight = MRRLayoutScaledValue(164.0, viewportSize, MRRLayoutScaleAxisHeight, self.layoutScalingMode);
-    buttonHeight = MRRLayoutScaledValue(48.0, viewportSize, MRRLayoutScaleAxisHeight, self.layoutScalingMode);
-    dividerHeight = MRRLayoutScaledValue(14.0, viewportSize, MRRLayoutScaleAxisHeight, self.layoutScalingMode);
-    signinFontSize = MRRLayoutScaledValue(14.5, viewportSize, MRRLayoutScaleAxisWidth, self.layoutScalingMode);
-    authDividerFontSize = MRRLayoutScaledValue(13.5, viewportSize, MRRLayoutScaleAxisWidth, self.layoutScalingMode);
-    buttonCornerRadius = MRRLayoutScaledValue(16.5, viewportSize, MRRLayoutScaleAxisHeight, self.layoutScalingMode);
-    buttonIconFontSize = MRRLayoutScaledValue(17.0, viewportSize, MRRLayoutScaleAxisHeight, self.layoutScalingMode);
-    buttonTitleFontSize = MRRLayoutScaledValue(15.5, viewportSize, MRRLayoutScaleAxisWidth, self.layoutScalingMode);
-    desiredLineSpacing = MRRLayoutScaledValue(12.0, viewportSize, MRRLayoutScaleAxisWidth, self.layoutScalingMode);
-    self.compactLayoutActive = viewportHeight < 740.0 || contentWidth < 340.0;
-  } else {
-    horizontalInset = MRRLayoutRoundedMetric(MRRLayoutInterpolatedMetricForValue(viewportWidth, 320.0, 414.0, 20.0, 24.0));
-    contentWidth = MAX(viewportWidth - (horizontalInset * 2.0), 0.0);
-    stackSpacing = MRRLayoutRoundedMetric(MRRLayoutInterpolatedMetricForValue(viewportHeight, 720.0, 860.0, 10.0, 15.0));
-    topInset = MRRLayoutRoundedMetric(MRRLayoutInterpolatedMetricForValue(viewportHeight, 720.0, 860.0, 14.0, 20.0));
-    bottomInset = MRRLayoutRoundedMetric(MRRLayoutInterpolatedMetricForValue(viewportHeight, 720.0, 860.0, 14.0, 20.0));
-    spacerHeight = MRRLayoutRoundedMetric(MRRLayoutInterpolatedMetricForValue(viewportHeight, 720.0, 860.0, 8.0, 18.0));
-    iconContainerSize = MRRLayoutRoundedMetric(MRRLayoutInterpolatedMetricForValue(contentWidth, 320.0, 366.0, 58.0, 72.0));
-    iconTopInset = MRRLayoutRoundedMetric(MRRLayoutInterpolatedMetricForValue(viewportHeight, 720.0, 860.0, 4.0, 8.0));
-    iconBottomInset = MRRLayoutRoundedMetric(MRRLayoutInterpolatedMetricForValue(viewportHeight, 720.0, 860.0, 10.0, 16.0));
-    iconImageSize = MRRLayoutRoundedMetric(MRRLayoutInterpolatedMetricForValue(iconContainerSize, 58.0, 72.0, 32.0, 40.0));
-    titleFontSize = MRRLayoutRoundedMetric(MRRLayoutInterpolatedMetricForValue(contentWidth, 320.0, 366.0, 40.0, 44.0));
-    titleKerning = MRRLayoutRoundedMetric(MRRLayoutInterpolatedMetricForValue(contentWidth, 320.0, 366.0, 0.6, 1.0));
-    subtitleFontSize = MRRLayoutRoundedMetric(MRRLayoutInterpolatedMetricForValue(contentWidth, 320.0, 366.0, 15.0, 16.5));
-    captionFontSize = MRRLayoutRoundedMetric(MRRLayoutInterpolatedMetricForValue(contentWidth, 320.0, 366.0, 12.0, 13.0));
-    captionKerning = MRRLayoutRoundedMetric(MRRLayoutInterpolatedMetricForValue(contentWidth, 320.0, 366.0, 2.2, 2.6));
-    benefitTitleFontSize = MRRLayoutRoundedMetric(MRRLayoutInterpolatedMetricForValue(contentWidth, 320.0, 366.0, 22.0, 25.0));
-    benefitBodyFontSize = MRRLayoutRoundedMetric(MRRLayoutInterpolatedMetricForValue(contentWidth, 320.0, 366.0, 14.0, 15.5));
-    benefitTitleHeight = MRRLayoutRoundedMetric(MRRLayoutInterpolatedMetricForValue(viewportHeight, 720.0, 860.0, 44.0, 50.0));
-    benefitBodyHeight = MRRLayoutRoundedMetric(MRRLayoutInterpolatedMetricForValue(viewportHeight, 720.0, 860.0, 28.0, 34.0));
-    CGFloat carouselHeightWidthDriven = MRRLayoutRoundedMetric(MRRLayoutClampedFloat(contentWidth * 0.52, 148.0, 190.0));
-    CGFloat carouselHeightCap = MRRLayoutRoundedMetric(MRRLayoutInterpolatedMetricForValue(viewportHeight, 720.0, 860.0, 150.0, 176.0));
-    carouselHeight = MIN(carouselHeightWidthDriven, carouselHeightCap);
-    buttonHeight = MRRLayoutRoundedMetric(MRRLayoutInterpolatedMetricForValue(viewportHeight, 720.0, 860.0, 44.0, 52.0));
-    dividerHeight = MRRLayoutRoundedMetric(MRRLayoutInterpolatedMetricForValue(viewportHeight, 720.0, 860.0, 13.0, 16.0));
-    signinFontSize = MRRLayoutRoundedMetric(MRRLayoutInterpolatedMetricForValue(contentWidth, 320.0, 366.0, 14.0, 15.0));
-    authDividerFontSize = MRRLayoutRoundedMetric(MRRLayoutInterpolatedMetricForValue(contentWidth, 320.0, 366.0, 13.0, 14.0));
-    buttonCornerRadius = MRRLayoutRoundedMetric(MRRLayoutInterpolatedMetricForValue(buttonHeight, 44.0, 52.0, 15.0, 18.0));
-    buttonIconFontSize = MRRLayoutRoundedMetric(MRRLayoutInterpolatedMetricForValue(buttonHeight, 44.0, 52.0, 16.0, 18.0));
-    buttonTitleFontSize = MRRLayoutRoundedMetric(MRRLayoutInterpolatedMetricForValue(contentWidth, 320.0, 366.0, 15.0, 16.5));
-    desiredLineSpacing = MRRLayoutRoundedMetric(MRRLayoutInterpolatedMetricForValue(contentWidth, 320.0, 366.0, 10.0, 14.0));
-    self.compactLayoutActive = viewportHeight < 780.0 || contentWidth < 340.0;
-  }
+  horizontalInset = MRRLayoutScaledValue(22.0, viewportSize, MRRLayoutScaleAxisWidth);
+  contentWidth = MAX(viewportWidth - (horizontalInset * 2.0), 0.0);
+  stackSpacing = MRRLayoutScaledValue(9.0, viewportSize, MRRLayoutScaleAxisHeight);
+  topInset = MRRLayoutScaledValue(12.0, viewportSize, MRRLayoutScaleAxisHeight);
+  bottomInset = MRRLayoutScaledValue(12.0, viewportSize, MRRLayoutScaleAxisHeight);
+  spacerHeight = MRRLayoutScaledValue(7.0, viewportSize, MRRLayoutScaleAxisHeight);
+  iconContainerSize = MRRLayoutScaledValue(66.0, viewportSize, MRRLayoutScaleAxisMinDimension);
+  iconTopInset = MRRLayoutScaledValue(6.0, viewportSize, MRRLayoutScaleAxisHeight);
+  iconBottomInset = MRRLayoutScaledValue(13.0, viewportSize, MRRLayoutScaleAxisHeight);
+  iconImageSize = MRRLayoutScaledValue(36.0, viewportSize, MRRLayoutScaleAxisMinDimension);
+  titleFontSize = MRRLayoutScaledValue(42.0, viewportSize, MRRLayoutScaleAxisWidth);
+  titleKerning = MRRLayoutScaledValue(0.8, viewportSize, MRRLayoutScaleAxisWidth);
+  subtitleFontSize = MRRLayoutScaledValue(16.0, viewportSize, MRRLayoutScaleAxisWidth);
+  captionFontSize = MRRLayoutScaledValue(12.5, viewportSize, MRRLayoutScaleAxisWidth);
+  captionKerning = MRRLayoutScaledValue(2.4, viewportSize, MRRLayoutScaleAxisWidth);
+  benefitTitleFontSize = MRRLayoutScaledValue(23.5, viewportSize, MRRLayoutScaleAxisWidth);
+  benefitBodyFontSize = MRRLayoutScaledValue(14.5, viewportSize, MRRLayoutScaleAxisWidth);
+  benefitTitleHeight = MRRLayoutScaledValue(42.0, viewportSize, MRRLayoutScaleAxisHeight);
+  benefitBodyHeight = MRRLayoutScaledValue(27.0, viewportSize, MRRLayoutScaleAxisHeight);
+  carouselHeight = MRRLayoutScaledValue(192.0, viewportSize, MRRLayoutScaleAxisHeight);
+  buttonHeight = MRRLayoutScaledValue(48.0, viewportSize, MRRLayoutScaleAxisHeight);
+  dividerHeight = MRRLayoutScaledValue(14.0, viewportSize, MRRLayoutScaleAxisHeight);
+  signinFontSize = MRRLayoutScaledValue(14.5, viewportSize, MRRLayoutScaleAxisWidth);
+  authDividerFontSize = MRRLayoutScaledValue(13.5, viewportSize, MRRLayoutScaleAxisWidth);
+  buttonCornerRadius = MRRLayoutScaledValue(16.5, viewportSize, MRRLayoutScaleAxisHeight);
+  buttonIconFontSize = MRRLayoutScaledValue(17.0, viewportSize, MRRLayoutScaleAxisHeight);
+  buttonTitleFontSize = MRRLayoutScaledValue(15.5, viewportSize, MRRLayoutScaleAxisWidth);
+  desiredLineSpacing = MRRLayoutScaledValue(12.0, viewportSize, MRRLayoutScaleAxisWidth);
+
   self.contentStackView.spacing = stackSpacing;
   self.stackTopConstraint.constant = topInset;
   self.stackBottomConstraint.constant = -bottomInset;
@@ -796,6 +763,19 @@ static UIColor *MRRNamedColor(NSString *name, UIColor *lightColor, UIColor *dark
   UICollectionViewFlowLayout *layout = [self carouselLayout];
   if (fabs(layout.minimumLineSpacing - desiredLineSpacing) >= 0.5) {
     layout.minimumLineSpacing = desiredLineSpacing;
+    [layout invalidateLayout];
+  }
+
+  CGSize initialCarouselItemSize = [self carouselItemSizeForAvailableWidth:contentWidth
+                                                           availableHeight:carouselHeight
+                                                                lineSpacing:desiredLineSpacing];
+  CGFloat desiredInteritemSpacing = MAX(carouselHeight + MRRCarouselSingleRowSpacingPadding, 1000.0);
+  if (initialCarouselItemSize.width > 0.0 && initialCarouselItemSize.height > 0.0 &&
+      (fabs(layout.itemSize.width - initialCarouselItemSize.width) >= 0.5 ||
+       fabs(layout.itemSize.height - initialCarouselItemSize.height) >= 0.5 ||
+       fabs(layout.minimumInteritemSpacing - desiredInteritemSpacing) >= 0.5)) {
+    layout.itemSize = initialCarouselItemSize;
+    layout.minimumInteritemSpacing = desiredInteritemSpacing;
     [layout invalidateLayout];
   }
 }
@@ -943,25 +923,47 @@ static UIColor *MRRNamedColor(NSString *name, UIColor *lightColor, UIColor *dark
 }
 
 - (NSInteger)nearestCarouselItemIndexForOffsetX:(CGFloat)offsetX {
-  UICollectionViewFlowLayout *layout = [self carouselLayout];
-  CGFloat pageWidth = layout.itemSize.width + layout.minimumLineSpacing;
-  if (pageWidth <= 0.0) {
+  NSInteger totalItemCount = [self virtualCarouselItemCount];
+  if (totalItemCount == 0) {
     return 0;
   }
 
-  NSInteger index = (NSInteger)llround((offsetX + layout.sectionInset.left) / pageWidth);
-  NSInteger maxIndex = MAX([self virtualCarouselItemCount] - 1, 0);
-  return MIN(MAX(index, 0), maxIndex);
+  [self.carouselCollectionView layoutIfNeeded];
+  CGFloat visibleMidX = offsetX + (CGRectGetWidth(self.carouselCollectionView.bounds) / 2.0);
+  NSInteger nearestIndex = 0;
+  CGFloat nearestDistance = CGFLOAT_MAX;
+
+  for (NSInteger itemIndex = 0; itemIndex < totalItemCount; itemIndex++) {
+    NSIndexPath *indexPath = [NSIndexPath indexPathForItem:itemIndex inSection:0];
+    UICollectionViewLayoutAttributes *attributes = [self.carouselCollectionView.collectionViewLayout layoutAttributesForItemAtIndexPath:indexPath];
+    if (attributes == nil) {
+      continue;
+    }
+
+    CGFloat distance = fabs(attributes.center.x - visibleMidX);
+    if (distance < nearestDistance) {
+      nearestDistance = distance;
+      nearestIndex = itemIndex;
+    }
+  }
+
+  return nearestIndex;
 }
 
 - (CGFloat)contentOffsetXForCarouselItemIndex:(NSInteger)itemIndex {
-  UICollectionViewFlowLayout *layout = [self carouselLayout];
-  CGFloat pageWidth = layout.itemSize.width + layout.minimumLineSpacing;
-  if (pageWidth <= 0.0) {
+  if (itemIndex < 0 || itemIndex >= [self virtualCarouselItemCount]) {
     return 0.0;
   }
 
-  return MAX((itemIndex * pageWidth) - layout.sectionInset.left, 0.0);
+  [self.carouselCollectionView layoutIfNeeded];
+  NSIndexPath *indexPath = [NSIndexPath indexPathForItem:itemIndex inSection:0];
+  UICollectionViewLayoutAttributes *attributes = [self.carouselCollectionView.collectionViewLayout layoutAttributesForItemAtIndexPath:indexPath];
+  if (attributes == nil) {
+    return 0.0;
+  }
+
+  CGFloat centeredOffsetX = attributes.center.x - (CGRectGetWidth(self.carouselCollectionView.bounds) / 2.0);
+  return MAX(centeredOffsetX, 0.0);
 }
 
 - (void)updateCarouselLayoutIfNeeded {
@@ -972,30 +974,47 @@ static UIColor *MRRNamedColor(NSString *name, UIColor *lightColor, UIColor *dark
     return;
   }
 
-  CGFloat desiredWidth = 0.0;
-  CGFloat desiredHeight = 0.0;
+  CGSize desiredItemSize = [self carouselItemSizeForAvailableWidth:availableWidth
+                                                   availableHeight:availableHeight
+                                                        lineSpacing:layout.minimumLineSpacing];
+  CGFloat desiredWidth = desiredItemSize.width;
+  CGFloat desiredHeight = desiredItemSize.height;
+  CGFloat desiredInteritemSpacing = MAX(availableHeight + MRRCarouselSingleRowSpacingPadding, 1000.0);
 
-  if (self.layoutScalingMode == MRRLayoutScalingModePureScreenScaling) {
-    CGSize carouselViewportSize = CGSizeMake(availableWidth, availableHeight);
-    desiredWidth = MRRLayoutScaledValue(176.0, carouselViewportSize, MRRLayoutScaleAxisWidth, self.layoutScalingMode);
-    desiredWidth = MIN(desiredWidth, MAX((availableWidth - layout.minimumLineSpacing) / 2.0, 0.0));
-    desiredHeight = MRRLayoutScaledValue(170.0, carouselViewportSize, MRRLayoutScaleAxisHeight, self.layoutScalingMode);
-    desiredHeight = MIN(desiredHeight, MAX(availableHeight - 8.0, 0.0));
-  } else {
-    desiredWidth = MRRLayoutRoundedMetric(MRRLayoutClampedFloat(availableWidth * 0.49, 148.0, 188.0));
-    desiredWidth = MIN(desiredWidth, MAX((availableWidth - layout.minimumLineSpacing) / 2.0, 0.0));
-    desiredHeight = MRRLayoutRoundedMetric(MRRLayoutClampedFloat(desiredWidth * 1.05, 152.0, 186.0));
-    desiredHeight = MIN(desiredHeight, MAX(availableHeight - 8.0, 0.0));
-  }
-
-  if (fabs(layout.itemSize.width - desiredWidth) < 0.5 && fabs(layout.itemSize.height - desiredHeight) < 0.5) {
+  if (fabs(layout.itemSize.width - desiredWidth) < 0.5 && fabs(layout.itemSize.height - desiredHeight) < 0.5 &&
+      fabs(layout.minimumInteritemSpacing - desiredInteritemSpacing) < 0.5) {
     return;
   }
 
   layout.itemSize = CGSizeMake(desiredWidth, desiredHeight);
+  layout.minimumInteritemSpacing = desiredInteritemSpacing;
   [layout invalidateLayout];
   [self.carouselCollectionView layoutIfNeeded];
   [self scrollToRecipeAtIndex:self.currentRecipeIndex animated:NO];
+}
+
+- (CGSize)carouselItemSizeForAvailableWidth:(CGFloat)availableWidth
+                          availableHeight:(CGFloat)availableHeight
+                               lineSpacing:(CGFloat)lineSpacing {
+  if (availableWidth <= 0.0 || availableHeight <= 0.0) {
+    return CGSizeZero;
+  }
+
+  CGFloat desiredWidth = 0.0;
+  CGFloat desiredHeight = 0.0;
+
+  CGFloat layoutViewportHeight = [self layoutViewportHeight];
+  if (layoutViewportHeight <= 0.0) {
+    layoutViewportHeight = availableHeight;
+  }
+
+  CGSize carouselViewportSize = CGSizeMake(availableWidth, layoutViewportHeight);
+  desiredWidth = MRRLayoutScaledValue(176.0, carouselViewportSize, MRRLayoutScaleAxisWidth);
+  desiredWidth = MIN(desiredWidth, MAX((availableWidth - lineSpacing) / 2.0, 0.0));
+  desiredHeight = MRRLayoutScaledValue(196.0, carouselViewportSize, MRRLayoutScaleAxisHeight);
+  desiredHeight = MIN(desiredHeight, MAX(availableHeight - 8.0, 0.0));
+
+  return CGSizeMake(desiredWidth, desiredHeight);
 }
 
 - (void)scrollToCarouselItemAtIndex:(NSInteger)itemIndex animated:(BOOL)animated {
@@ -1004,10 +1023,9 @@ static UIColor *MRRNamedColor(NSString *name, UIColor *lightColor, UIColor *dark
     return;
   }
 
-  NSIndexPath *indexPath = [NSIndexPath indexPathForItem:itemIndex inSection:0];
-  [self.carouselCollectionView scrollToItemAtIndexPath:indexPath
-                                      atScrollPosition:UICollectionViewScrollPositionCenteredHorizontally
-                                              animated:animated];
+  [self.carouselCollectionView setContentOffset:CGPointMake([self contentOffsetXForCarouselItemIndex:itemIndex],
+                                                            self.carouselCollectionView.contentOffset.y)
+                               animated:animated];
   self.currentCarouselItemIndex = itemIndex;
   self.currentRecipeIndex = [self recipeIndexForCarouselItemIndex:itemIndex];
   [self updatePageControl];
@@ -1063,8 +1081,7 @@ static UIColor *MRRNamedColor(NSString *name, UIColor *lightColor, UIColor *dark
   [self pauseCarouselAutoscroll];
 
   OnboardingRecipeDetailViewController *detailViewController =
-      [[[OnboardingRecipeDetailViewController alloc] initWithRecipe:self.recipes[index] layoutScalingMode:self.layoutScalingMode]
-          autorelease];
+      [[[OnboardingRecipeDetailViewController alloc] initWithRecipe:self.recipes[index]] autorelease];
   detailViewController.delegate = self;
   [self presentViewController:detailViewController animated:[self shouldAnimateModalTransitions] completion:nil];
 }
@@ -1088,9 +1105,10 @@ static UIColor *MRRNamedColor(NSString *name, UIColor *lightColor, UIColor *dark
     return;
   }
 
+  [self recenterCarouselIfNeeded];
   NSInteger nextItemIndex = self.currentCarouselItemIndex + 1;
   if (nextItemIndex >= [self virtualCarouselItemCount]) {
-    nextItemIndex = [self middleCarouselItemIndexForRecipeIndex:self.currentRecipeIndex];
+    nextItemIndex = [self middleCarouselItemIndexForRecipeIndex:0];
   }
 
   [self scrollToCarouselItemAtIndex:nextItemIndex animated:YES];
@@ -1114,7 +1132,6 @@ static UIColor *MRRNamedColor(NSString *name, UIColor *lightColor, UIColor *dark
     return cell;
   }
 
-  cell.layoutScalingMode = self.layoutScalingMode;
   [cell configureWithRecipe:self.recipes[recipeIndex]];
   return cell;
 }
@@ -1140,10 +1157,8 @@ static UIColor *MRRNamedColor(NSString *name, UIColor *lightColor, UIColor *dark
     return;
   }
 
-  UICollectionViewFlowLayout *layout = [self carouselLayout];
-  CGFloat pageWidth = layout.itemSize.width + layout.minimumLineSpacing;
   NSInteger targetItemIndex = [self nearestCarouselItemIndexForOffsetX:targetContentOffset->x];
-  targetContentOffset->x = MAX((targetItemIndex * pageWidth) - layout.sectionInset.left, 0.0);
+  targetContentOffset->x = [self contentOffsetXForCarouselItemIndex:targetItemIndex];
   self.currentCarouselItemIndex = targetItemIndex;
   self.currentRecipeIndex = [self recipeIndexForCarouselItemIndex:targetItemIndex];
   [self updatePageControl];

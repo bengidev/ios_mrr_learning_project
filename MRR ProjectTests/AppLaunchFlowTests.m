@@ -7,7 +7,6 @@
 @interface AppDelegate (Testing)
 
 - (void)onboardingViewControllerDidFinish:(OnboardingViewController *)viewController;
-- (void)applyLayoutScalingMode:(MRRLayoutScalingMode)layoutScalingMode;
 
 @end
 
@@ -74,12 +73,11 @@
   XCTAssertFalse([appDelegate.window.rootViewController isKindOfClass:[UITabBarController class]]);
 }
 
-- (void)testAppDelegateAppliesStoredLayoutScalingModeWhenNoLaunchArgumentOverridesIt {
-  MRRStoreLayoutScalingMode(self.userDefaults, MRRLayoutScalingModePureScreenScaling);
+- (void)testLegacyStoredLayoutScalingPreferenceDoesNotAffectLaunchFlow {
+  [self.userDefaults setObject:@"guarded" forKey:@"mrr.layoutScalingMode"];
+  [self.userDefaults synchronize];
   OnboardingStateController *stateController = [[OnboardingStateController alloc] initWithUserDefaults:self.userDefaults];
-  AppDelegate *appDelegate = [[AppDelegate alloc] initWithOnboardingStateController:stateController
-                                                                        userDefaults:self.userDefaults
-                                                                   layoutScalingMode:MRRStoredLayoutScalingMode(self.userDefaults)];
+  AppDelegate *appDelegate = [[AppDelegate alloc] initWithOnboardingStateController:stateController];
 
   XCTAssertTrue([appDelegate application:[UIApplication sharedApplication] didFinishLaunchingWithOptions:nil]);
 
@@ -87,23 +85,20 @@
   XCTAssertTrue([onboardingViewController isKindOfClass:[OnboardingViewController class]]);
 }
 
-- (void)testApplyingLayoutScalingModePersistsAndRebuildsRootFlow {
+- (void)testAppDelegateRebuildsRootFlowWhenOnboardingFinishes {
   AppDelegate *appDelegate = [self makeAppDelegate];
   XCTAssertTrue([appDelegate application:[UIApplication sharedApplication] didFinishLaunchingWithOptions:nil]);
 
   UIViewController *initialRootViewController = appDelegate.window.rootViewController;
-  [appDelegate applyLayoutScalingMode:MRRLayoutScalingModePureScreenScaling];
+  [appDelegate onboardingViewControllerDidFinish:(OnboardingViewController *)initialRootViewController];
 
-  XCTAssertEqual(MRRStoredLayoutScalingMode(self.userDefaults), MRRLayoutScalingModePureScreenScaling);
   XCTAssertNotEqual(appDelegate.window.rootViewController, initialRootViewController);
-  XCTAssertTrue([appDelegate.window.rootViewController isKindOfClass:[OnboardingViewController class]]);
+  XCTAssertTrue([appDelegate.window.rootViewController isKindOfClass:[MainMenuViewController class]]);
 }
 
 - (AppDelegate *)makeAppDelegate {
   OnboardingStateController *stateController = [[OnboardingStateController alloc] initWithUserDefaults:self.userDefaults];
-  AppDelegate *appDelegate = [[AppDelegate alloc] initWithOnboardingStateController:stateController
-                                                                        userDefaults:self.userDefaults
-                                                                   layoutScalingMode:MRRLayoutScalingModeGuardedFluidScaling];
+  AppDelegate *appDelegate = [[AppDelegate alloc] initWithOnboardingStateController:stateController];
   return appDelegate;
 }
 

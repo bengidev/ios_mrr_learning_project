@@ -25,6 +25,9 @@ static UIColor *MRRNamedColor(NSString *name, UIColor *lightColor, UIColor *dark
   return namedColor ?: MRRDynamicFallbackColor(lightColor, darkColor);
 }
 
+static CGFloat const MRRPureCarouselCardBaseWidth = 176.0;
+static CGFloat const MRRPureCarouselCardBaseHeight = 196.0;
+
 @interface OnboardingRecipeCarouselCell ()
 
 @property(nonatomic, retain) UIView *cardView;
@@ -50,7 +53,6 @@ static UIColor *MRRNamedColor(NSString *name, UIColor *lightColor, UIColor *dark
 - (instancetype)initWithFrame:(CGRect)frame {
   self = [super initWithFrame:frame];
   if (self) {
-    _layoutScalingMode = MRRLayoutScalingModeGuardedFluidScaling;
     self.backgroundColor = [UIColor clearColor];
     self.contentView.backgroundColor = [UIColor clearColor];
     self.layer.shadowColor = [UIColor blackColor].CGColor;
@@ -120,8 +122,8 @@ static UIColor *MRRNamedColor(NSString *name, UIColor *lightColor, UIColor *dark
   cardView.translatesAutoresizingMaskIntoConstraints = NO;
   cardView.layer.cornerRadius = 20.0;
   cardView.clipsToBounds = YES;
-  cardView.layer.borderWidth = 1.0;
-  cardView.layer.borderColor = [[UIColor colorWithWhite:1.0 alpha:0.08] CGColor];
+  cardView.layer.borderWidth = 1.2;
+  cardView.layer.borderColor = [[UIColor colorWithWhite:1.0 alpha:0.16] CGColor];
   cardView.backgroundColor = MRRNamedColor(@"CardSurfaceColor", [UIColor whiteColor], [UIColor colorWithWhite:0.16 alpha:1.0]);
   [self.contentView addSubview:cardView];
   self.cardView = cardView;
@@ -135,7 +137,7 @@ static UIColor *MRRNamedColor(NSString *name, UIColor *lightColor, UIColor *dark
 
   UIView *bottomOverlayView = [[[UIView alloc] init] autorelease];
   bottomOverlayView.translatesAutoresizingMaskIntoConstraints = NO;
-  bottomOverlayView.backgroundColor = [[UIColor blackColor] colorWithAlphaComponent:0.45];
+  bottomOverlayView.backgroundColor = [[UIColor blackColor] colorWithAlphaComponent:0.30];
   [cardView addSubview:bottomOverlayView];
 
   UILabel *titleLabel = [[[UILabel alloc] init] autorelease];
@@ -186,7 +188,7 @@ static UIColor *MRRNamedColor(NSString *name, UIColor *lightColor, UIColor *dark
     [bottomOverlayView.leadingAnchor constraintEqualToAnchor:cardView.leadingAnchor],
     [bottomOverlayView.trailingAnchor constraintEqualToAnchor:cardView.trailingAnchor],
     [bottomOverlayView.bottomAnchor constraintEqualToAnchor:cardView.bottomAnchor],
-    [bottomOverlayView.heightAnchor constraintEqualToAnchor:cardView.heightAnchor multiplier:0.42],
+    [bottomOverlayView.heightAnchor constraintEqualToAnchor:cardView.heightAnchor multiplier:0.30],
 
     self.metadataLeadingConstraint,
     self.metadataTrailingConstraint,
@@ -221,25 +223,18 @@ static UIColor *MRRNamedColor(NSString *name, UIColor *lightColor, UIColor *dark
   CGFloat shadowRadius = 0.0;
   CGFloat shadowOffsetY = 0.0;
 
-  if (self.layoutScalingMode == MRRLayoutScalingModePureScreenScaling) {
-    horizontalPadding = MRRLayoutScaledValue(14.0, cardSize, MRRLayoutScaleAxisWidth, self.layoutScalingMode);
-    bottomPadding = MRRLayoutScaledValue(14.0, cardSize, MRRLayoutScaleAxisHeight, self.layoutScalingMode);
-    titleSpacing = MRRLayoutScaledValue(5.0, cardSize, MRRLayoutScaleAxisHeight, self.layoutScalingMode);
-    cornerRadius = MRRLayoutScaledValue(20.0, cardSize, MRRLayoutScaleAxisMinDimension, self.layoutScalingMode);
-    titleFontSize = MRRLayoutScaledValue(19.0, cardSize, MRRLayoutScaleAxisWidth, self.layoutScalingMode);
-    metadataFontSize = MRRLayoutScaledValue(12.5, cardSize, MRRLayoutScaleAxisWidth, self.layoutScalingMode);
-    shadowRadius = MRRLayoutScaledValue(18.0, cardSize, MRRLayoutScaleAxisHeight, self.layoutScalingMode);
-    shadowOffsetY = MRRLayoutScaledValue(10.0, cardSize, MRRLayoutScaleAxisHeight, self.layoutScalingMode);
-  } else {
-    horizontalPadding = MRRLayoutRoundedMetric(MRRLayoutInterpolatedMetricForValue(cardWidth, 148.0, 188.0, 12.0, 16.0));
-    bottomPadding = MRRLayoutRoundedMetric(MRRLayoutInterpolatedMetricForValue(cardHeight, 152.0, 186.0, 12.0, 16.0));
-    titleSpacing = MRRLayoutRoundedMetric(MRRLayoutInterpolatedMetricForValue(cardHeight, 152.0, 186.0, 4.0, 6.0));
-    cornerRadius = MRRLayoutRoundedMetric(MRRLayoutInterpolatedMetricForValue(MIN(cardWidth, cardHeight), 148.0, 186.0, 18.0, 20.0));
-    titleFontSize = MRRLayoutRoundedMetric(MRRLayoutInterpolatedMetricForValue(cardWidth, 148.0, 188.0, 17.0, 20.0));
-    metadataFontSize = MRRLayoutRoundedMetric(MRRLayoutInterpolatedMetricForValue(cardWidth, 148.0, 188.0, 11.5, 13.0));
-    shadowRadius = MRRLayoutRoundedMetric(MRRLayoutInterpolatedMetricForValue(cardHeight, 152.0, 186.0, 16.0, 20.0));
-    shadowOffsetY = MRRLayoutRoundedMetric(MRRLayoutInterpolatedMetricForValue(cardHeight, 152.0, 186.0, 8.0, 12.0));
-  }
+  CGFloat widthScaleFactor = cardWidth / MRRPureCarouselCardBaseWidth;
+  CGFloat heightScaleFactor = cardHeight / MRRPureCarouselCardBaseHeight;
+  CGFloat minDimensionScaleFactor = MIN(widthScaleFactor, heightScaleFactor);
+
+  horizontalPadding = MRRLayoutRoundedMetric(14.0 * widthScaleFactor);
+  bottomPadding = MRRLayoutRoundedMetric(14.0 * heightScaleFactor);
+  titleSpacing = MRRLayoutRoundedMetric(5.0 * heightScaleFactor);
+  cornerRadius = MRRLayoutRoundedMetric(20.0 * minDimensionScaleFactor);
+  titleFontSize = MRRLayoutRoundedMetric(19.0 * widthScaleFactor);
+  metadataFontSize = MRRLayoutRoundedMetric(12.5 * widthScaleFactor);
+  shadowRadius = MRRLayoutRoundedMetric(18.0 * heightScaleFactor);
+  shadowOffsetY = MRRLayoutRoundedMetric(10.0 * heightScaleFactor);
 
   self.cardView.layer.cornerRadius = cornerRadius;
   self.titleLeadingConstraint.constant = horizontalPadding;

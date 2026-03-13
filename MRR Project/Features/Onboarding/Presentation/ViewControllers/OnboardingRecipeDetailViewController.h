@@ -1,7 +1,5 @@
 #import <UIKit/UIKit.h>
 
-#import "../../../../Layout/MRRLayoutScaling.h"
-
 NS_ASSUME_NONNULL_BEGIN
 
 @class OnboardingRecipe;
@@ -20,7 +18,6 @@ NS_ASSUME_NONNULL_BEGIN
 @property(nonatomic, retain, readonly) OnboardingRecipe *recipe;
 
 - (instancetype)initWithRecipe:(OnboardingRecipe *)recipe;
-- (instancetype)initWithRecipe:(OnboardingRecipe *)recipe layoutScalingMode:(MRRLayoutScalingMode)layoutScalingMode;
 
 @end
 

@@ -1,8 +1,8 @@
 #import "MainMenuViewController.h"
+#import "../Layout/MRRLayoutScaling.h"
 
 @interface MainMenuViewController ()
 
-@property(nonatomic, assign) MRRLayoutScalingMode layoutScalingMode;
 @property(nonatomic, retain) UIStackView *stackView;
 @property(nonatomic, retain) UILabel *titleLabel;
 @property(nonatomic, retain) UILabel *summaryLabel;
@@ -20,19 +20,6 @@
 @end
 
 @implementation MainMenuViewController
-
-- (instancetype)init {
-  return [self initWithLayoutScalingMode:MRRLayoutScalingModeGuardedFluidScaling];
-}
-
-- (instancetype)initWithLayoutScalingMode:(MRRLayoutScalingMode)layoutScalingMode {
-  self = [super initWithNibName:nil bundle:nil];
-  if (self) {
-    _layoutScalingMode = layoutScalingMode;
-  }
-
-  return self;
-}
 
 - (void)dealloc {
   [_stackTrailingConstraint release];
@@ -125,10 +112,10 @@
     return;
   }
 
-  CGFloat horizontalInset = MRRLayoutScaledValue(24.0, viewportSize, MRRLayoutScaleAxisWidth, self.layoutScalingMode);
-  CGFloat stackSpacing = MRRLayoutScaledValue(12.0, viewportSize, MRRLayoutScaleAxisHeight, self.layoutScalingMode);
-  CGFloat titleFontSize = MRRLayoutScaledValue(28.0, viewportSize, MRRLayoutScaleAxisWidth, self.layoutScalingMode);
-  CGFloat summaryFontSize = MRRLayoutScaledValue(17.0, viewportSize, MRRLayoutScaleAxisWidth, self.layoutScalingMode);
+  CGFloat horizontalInset = MRRLayoutScaledValue(24.0, viewportSize, MRRLayoutScaleAxisWidth);
+  CGFloat stackSpacing = MRRLayoutScaledValue(12.0, viewportSize, MRRLayoutScaleAxisHeight);
+  CGFloat titleFontSize = MRRLayoutScaledValue(28.0, viewportSize, MRRLayoutScaleAxisWidth);
+  CGFloat summaryFontSize = MRRLayoutScaledValue(17.0, viewportSize, MRRLayoutScaleAxisWidth);
 
   self.stackLeadingConstraint.constant = horizontalInset;
   self.stackTrailingConstraint.constant = -horizontalInset;
