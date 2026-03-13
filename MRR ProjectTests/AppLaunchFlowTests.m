@@ -7,6 +7,7 @@
 @interface AppDelegate (Testing)
 
 - (void)onboardingViewControllerDidFinish:(OnboardingViewController *)viewController;
+- (void)applyLayoutScalingMode:(MRRLayoutScalingMode)layoutScalingMode;
 
 @end
 
@@ -73,9 +74,36 @@
   XCTAssertFalse([appDelegate.window.rootViewController isKindOfClass:[UITabBarController class]]);
 }
 
+- (void)testAppDelegateAppliesStoredLayoutScalingModeWhenNoLaunchArgumentOverridesIt {
+  MRRStoreLayoutScalingMode(self.userDefaults, MRRLayoutScalingModePureScreenScaling);
+  OnboardingStateController *stateController = [[OnboardingStateController alloc] initWithUserDefaults:self.userDefaults];
+  AppDelegate *appDelegate = [[AppDelegate alloc] initWithOnboardingStateController:stateController
+                                                                        userDefaults:self.userDefaults
+                                                                   layoutScalingMode:MRRStoredLayoutScalingMode(self.userDefaults)];
+
+  XCTAssertTrue([appDelegate application:[UIApplication sharedApplication] didFinishLaunchingWithOptions:nil]);
+
+  OnboardingViewController *onboardingViewController = (OnboardingViewController *)appDelegate.window.rootViewController;
+  XCTAssertTrue([onboardingViewController isKindOfClass:[OnboardingViewController class]]);
+}
+
+- (void)testApplyingLayoutScalingModePersistsAndRebuildsRootFlow {
+  AppDelegate *appDelegate = [self makeAppDelegate];
+  XCTAssertTrue([appDelegate application:[UIApplication sharedApplication] didFinishLaunchingWithOptions:nil]);
+
+  UIViewController *initialRootViewController = appDelegate.window.rootViewController;
+  [appDelegate applyLayoutScalingMode:MRRLayoutScalingModePureScreenScaling];
+
+  XCTAssertEqual(MRRStoredLayoutScalingMode(self.userDefaults), MRRLayoutScalingModePureScreenScaling);
+  XCTAssertNotEqual(appDelegate.window.rootViewController, initialRootViewController);
+  XCTAssertTrue([appDelegate.window.rootViewController isKindOfClass:[OnboardingViewController class]]);
+}
+
 - (AppDelegate *)makeAppDelegate {
   OnboardingStateController *stateController = [[OnboardingStateController alloc] initWithUserDefaults:self.userDefaults];
-  AppDelegate *appDelegate = [[AppDelegate alloc] initWithOnboardingStateController:stateController];
+  AppDelegate *appDelegate = [[AppDelegate alloc] initWithOnboardingStateController:stateController
+                                                                        userDefaults:self.userDefaults
+                                                                   layoutScalingMode:MRRLayoutScalingModeGuardedFluidScaling];
   return appDelegate;
 }
 
