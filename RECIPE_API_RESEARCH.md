@@ -14,15 +14,27 @@ This note is a practical summary of the official docs and terms that were review
 
 ## Recommended Stack
 
-### Best low-risk portfolio stack
+### Best low-risk portfolio stack if a paid plan is acceptable
 
 Use:
 
-- TheMealDB for core recipe discovery
+- TheMealDB with a paid/supporter key for core recipe discovery
 - USDA FoodData Central for nutrition data
 - Open Food Facts as an optional add-on for barcode and product lookup
 
 This combination gives good coverage while keeping licensing and operational constraints easier to manage than Spoonacular or Edamam.
+
+### Best no-paid-plan portfolio stack
+
+Use:
+
+- Wikibooks Cookbook content accessed through the MediaWiki API behind your own normalization layer
+- USDA FoodData Central for nutrition data
+- Open Food Facts as an optional add-on for barcode and product lookup
+- DummyJSON Recipes only for prototyping or seeded demo content
+- Instacart Recipe Page API only if you already own the recipe content and want shopping handoff links
+
+This avoids recurring recipe API fees, but it shifts more work to your own backend, parsing, and data quality controls.
 
 ## Candidate Summary
 
@@ -206,6 +218,136 @@ Official sources:
 - https://developer.edamam.com/signup
 - https://developer.edamam.com/attribution
 
+## Free/Public Alternatives to Paid Plans
+
+These are the most practical replacements if the goal is to avoid recurring paid recipe API plans.
+
+### A. DummyJSON Recipes
+
+Best for:
+
+- UI prototyping
+- seeded demo content
+- testing pagination, search, tags, and detail screens
+
+Useful features:
+
+- list recipes
+- get recipe by id
+- search recipes
+- browse recipe tags
+- filter by meal type
+
+Important terms and constraints:
+
+- The docs describe the recipes endpoint as sample data useful for testing and prototyping.
+- The public repository is open-source under the MIT License.
+- It is not a large or authoritative live recipe dataset.
+
+Practical verdict:
+
+- Good replacement while building UI and app flows that would otherwise rely on Spoonacular or Edamam.
+- Weak replacement if the published app needs broad, real-world recipe coverage.
+
+Official sources:
+
+- https://dummyjson.com/
+- https://dummyjson.com/docs/recipes
+- https://github.com/Ovi/DummyJSON
+
+### B. Wikibooks Cookbook via MediaWiki API
+
+Best for:
+
+- real public recipe content without a paid vendor API
+- searchable recipe catalogs backed by your own server
+- portfolio projects that want to demonstrate ingestion and normalization
+
+Useful features:
+
+- MediaWiki REST API for content access
+- MediaWiki Action API category listing via `categorymembers`
+- thousands of recipe pages in the Wikibooks recipes category
+
+Important terms and constraints:
+
+- This is not a dedicated recipe API, so parsing and normalization are your responsibility.
+- The Wikibooks `Category:Recipes` page currently shows 3,741 total pages.
+- Wikibooks text is available under the Creative Commons Attribution-ShareAlike License, so attribution is required and derived-content obligations should be reviewed before redistribution.
+
+Practical verdict:
+
+- Strongest no-fee path if you need real public recipe content and can afford a backend integration layer.
+- Better suited to a server-backed app than a thin client that expects clean recipe JSON out of the box.
+
+Official sources:
+
+- https://www.mediawiki.org/wiki/API:REST_API/en
+- https://www.mediawiki.org/wiki/API:Categorymembers
+- https://en.wikibooks.org/wiki/Cookbook
+- https://en.wikibooks.org/wiki/Category:Recipes
+
+### C. Open Recipes dataset
+
+Best for:
+
+- seeding your own recipe database
+- search indexing demos
+- schema.org-based import pipelines
+
+Useful features:
+
+- JSON database snapshots
+- schema.org Recipe-compatible structure
+- open dataset you can host yourself
+
+Important terms and constraints:
+
+- The repository was archived on 2018-02-08 and is now read-only.
+- The dataset is licensed under Creative Commons Attribution 3.0.
+- The project describes itself as an open database of recipe bookmarks, so completeness and freshness vary.
+
+Practical verdict:
+
+- Useful as a static seed dataset if you want full control and no dependency on a hosted recipe vendor.
+- Not a strong drop-in replacement for a modern live recipe API.
+
+Official sources:
+
+- https://github.com/fictive-kin/openrecipes
+
+### D. Instacart Recipe Page API
+
+Best for:
+
+- shopping handoff flows
+- shoppable ingredient lists
+- add-to-cart style experiences layered on top of your own recipe source
+
+Useful features:
+
+- generate hosted recipe pages with ingredients and instructions
+- return shareable URLs for app or website handoff
+- support pantry-style and measurement-rich ingredient presentation
+
+Important terms and constraints:
+
+- This is not a recipe search corpus and does not replace a recipe catalog API.
+- You provide the recipe title, image, ingredients, and instructions; Instacart hosts the shopping page.
+- The docs use a development API key for testing and a production API key for the live environment.
+
+Practical verdict:
+
+- Good replacement for the shopping-oriented portion of Spoonacular-style functionality.
+- Not a replacement for TheMealDB, Spoonacular, or Edamam as a recipe discovery source.
+
+Official sources:
+
+- https://docs.instacart.com/developer_platform_api/guide/concepts/recipe/
+- https://docs.instacart.com/developer_platform_api/get_started/recipe/
+- https://docs.instacart.com/developer_platform_api/get_started/api-keys/
+- https://docs.instacart.com/developer_platform_api/guide/terms_and_policies/developer_terms/
+
 ## Final Recommendation
 
 ### If the goal is safest public portfolio usage
@@ -221,6 +363,25 @@ Why:
 - broad enough feature set for a portfolio
 - easier compliance than Spoonacular and Edamam
 - fewer restrictions on storage and product design when implemented carefully
+
+### If the goal is no paid plan at all
+
+Use:
+
+- Wikibooks Cookbook via the MediaWiki API with your own backend normalization layer
+- USDA FoodData Central for nutrition
+- Open Food Facts only as a separate live lookup service
+- DummyJSON Recipes only for development seeds, previews, or offline demos
+
+Optional:
+
+- Add Instacart Recipe Page API only if you want users to shop ingredients from your own recipes
+
+Why:
+
+- avoids recurring recipe API subscription costs
+- keeps the nutrition and grocery pieces on public data sources
+- the main trade-off is higher implementation complexity and less standardized recipe data
 
 ### If the goal is maximum features from one API
 
@@ -250,7 +411,10 @@ A solid portfolio app can combine these without unusual licensing risk:
 - Show attribution where the provider requires it.
 - Store only your own user data plus third-party identifiers when possible.
 - Avoid building a bulk local mirror of third-party recipe content unless the terms explicitly allow it.
+- For DummyJSON, treat it as sample or prototype data rather than an authoritative live recipe catalog.
+- For Wikibooks/Wikimedia content, keep attribution visible and review CC BY-SA obligations before republishing transformed recipe content.
+- For Open Recipes, expect stale archived data and plan to own the cleaning and hosting pipeline yourself.
+- For Instacart Recipe Page, treat it as a shopping destination layered on top of your recipe source, not as your primary recipe database.
 - For Open Food Facts, send a custom User-Agent.
 - For Spoonacular and Edamam, be conservative about caching and raw response retention.
 - For TheMealDB, use paid/supporter access before any app store release.
-

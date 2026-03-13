@@ -36,3 +36,9 @@ Carthage/Build/
 # SPM
 .build/
 .swiftpm/
+
+# Local tooling and captured simulator artifacts
+.xcodebuildmcp/
+/*.png
+/*.mp4
+/*.mov

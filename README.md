@@ -34,12 +34,24 @@ Both screens are intentionally simple placeholders for now.
 
 ## Tests
 
-The active unit-test coverage focuses on the root flow:
+The repository currently has no UI test target. Automated coverage lives in `MRR ProjectTests` and focuses on the root flow:
 
 - first launch shows onboarding
 - finishing onboarding persists the completion flag
 - returning users go directly to the main menu
 - the app no longer routes into a tab-bar-based learning flow
+
+Run the unit tests on the installed `iPhone 16e` simulator with:
+
+```bash
+xcodebuild -project "MRR Project.xcodeproj" \
+  -scheme "MRR Project" \
+  -destination 'platform=iOS Simulator,id=75072AB6-FDCA-416A-AC8E-91345CD0CC01' \
+  -derivedDataPath ".derivedData/test-iphone-16e" \
+  CODE_SIGNING_ALLOWED=NO \
+  -only-testing:"MRR ProjectTests" \
+  test
+```
 
 ## VSCode Save Behavior
 
