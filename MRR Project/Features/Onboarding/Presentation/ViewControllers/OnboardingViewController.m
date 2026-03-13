@@ -13,6 +13,8 @@ static NSString *const MRROnboardingAppIconImageName = @"OnboardingAppIcon";
 static NSInteger const MRROnboardingAuthButtonIconTag = 101;
 static NSInteger const MRROnboardingAuthButtonTitleTag = 102;
 static CGFloat const MRRCarouselSingleRowSpacingPadding = 32.0;
+static CGFloat const MRROnboardingButtonPressedScale = 0.97;
+static CGFloat const MRROnboardingButtonPressedAlpha = 0.88;
 
 static UIColor *MRRDynamicFallbackColor(UIColor *lightColor, UIColor *darkColor) {
   if (@available(iOS 13.0, *)) {
@@ -69,7 +71,8 @@ static UIColor *MRRSecondaryTextColor(void) {
 @property(nonatomic, retain) UILabel *captionLabel;
 @property(nonatomic, retain) UILabel *benefitTitleLabel;
 @property(nonatomic, retain) UILabel *benefitBodyLabel;
-@property(nonatomic, retain) UILabel *signinLabel;
+@property(nonatomic, retain) UILabel *signinPromptLabel;
+@property(nonatomic, retain) UIButton *signinLabel;
 @property(nonatomic, retain) UILabel *authDividerLabel;
 @property(nonatomic, retain) UIView *spacerView;
 @property(nonatomic, retain) UIButton *emailButton;
@@ -115,14 +118,17 @@ static UIColor *MRRSecondaryTextColor(void) {
 - (void)handleEmailSignupTapped:(id)sender;
 - (void)handleGoogleSignupTapped:(id)sender;
 - (void)handleAppleContinueTapped:(id)sender;
+- (void)handleSigninTapped:(id)sender;
 - (void)presentAuthComingSoonAlertWithProvider:(NSString *)provider;
+- (void)configurePressFeedbackForButton:(UIButton *)button;
+- (void)handlePressableButtonTouchDown:(UIButton *)sender;
+- (void)handlePressableButtonTouchUp:(UIButton *)sender;
 - (void)updateLayoutMetricsIfNeeded;
 - (void)updateScrollBehaviorIfNeeded;
 - (CGFloat)layoutViewportHeight;
 - (CGFloat)layoutViewportWidth;
 - (NSAttributedString *)titleAttributedTextWithFontSize:(CGFloat)fontSize kerning:(CGFloat)kerning;
 - (NSAttributedString *)carouselCaptionAttributedTextWithFontSize:(CGFloat)fontSize kerning:(CGFloat)kerning;
-- (NSAttributedString *)signinAttributedTextWithBodyFontSize:(CGFloat)bodyFontSize;
 - (UICollectionViewFlowLayout *)carouselLayout;
 - (void)updateCarouselLayoutIfNeeded;
 - (CGSize)carouselItemSizeForAvailableWidth:(CGFloat)availableWidth
@@ -201,6 +207,7 @@ static UIColor *MRRSecondaryTextColor(void) {
   [_spacerView release];
   [_authDividerLabel release];
   [_signinLabel release];
+  [_signinPromptLabel release];
   [_benefitBodyLabel release];
   [_benefitTitleLabel release];
   [_captionLabel release];
@@ -461,13 +468,51 @@ static UIColor *MRRSecondaryTextColor(void) {
   [stackView addArrangedSubview:appleButton];
   self.appleButton = appleButton;
 
-  UILabel *signinLabel = [self labelWithText:@"Already have an account? Sign in"
-                                        font:[UIFont systemFontOfSize:16.0 weight:UIFontWeightMedium]
-                                       color:MRRSecondaryTextColor()];
-  signinLabel.textAlignment = NSTextAlignmentCenter;
+  UIView *signinContainerView = [[[UIView alloc] init] autorelease];
+  signinContainerView.translatesAutoresizingMaskIntoConstraints = NO;
+  signinContainerView.backgroundColor = [UIColor clearColor];
+  signinContainerView.accessibilityIdentifier = @"onboarding.signinContainerView";
+  [stackView addArrangedSubview:signinContainerView];
+
+  UIStackView *signinRowView = [[[UIStackView alloc] init] autorelease];
+  signinRowView.translatesAutoresizingMaskIntoConstraints = NO;
+  signinRowView.axis = UILayoutConstraintAxisHorizontal;
+  signinRowView.alignment = UIStackViewAlignmentCenter;
+  signinRowView.spacing = 4.0;
+  signinRowView.accessibilityIdentifier = @"onboarding.signinRowView";
+  [signinContainerView addSubview:signinRowView];
+
+  UILabel *signinPromptLabel = [self labelWithText:@"Already have an account?"
+                                              font:[UIFont systemFontOfSize:15.0 weight:UIFontWeightMedium]
+                                             color:MRRSecondaryTextColor()];
+  signinPromptLabel.translatesAutoresizingMaskIntoConstraints = NO;
+  signinPromptLabel.accessibilityIdentifier = @"onboarding.signinPromptLabel";
+  [signinRowView addArrangedSubview:signinPromptLabel];
+  self.signinPromptLabel = signinPromptLabel;
+
+  UIButton *signinLabel = [UIButton buttonWithType:UIButtonTypeSystem];
+  signinLabel.translatesAutoresizingMaskIntoConstraints = NO;
+  signinLabel.backgroundColor = [UIColor clearColor];
+  signinLabel.contentEdgeInsets = UIEdgeInsetsZero;
+  signinLabel.contentHorizontalAlignment = UIControlContentHorizontalAlignmentCenter;
+  signinLabel.titleLabel.textAlignment = NSTextAlignmentCenter;
+  [signinLabel setContentHuggingPriority:UILayoutPriorityRequired forAxis:UILayoutConstraintAxisHorizontal];
+  [signinLabel setContentCompressionResistancePriority:UILayoutPriorityRequired forAxis:UILayoutConstraintAxisHorizontal];
+  [signinLabel setTitle:@"Sign in" forState:UIControlStateNormal];
+  [signinLabel setTitle:@"Sign in" forState:UIControlStateHighlighted];
+  [signinLabel setTitleColor:MRRPrimaryTextColor() forState:UIControlStateNormal];
+  [signinLabel setTitleColor:[MRRPrimaryTextColor() colorWithAlphaComponent:0.76] forState:UIControlStateHighlighted];
   signinLabel.accessibilityIdentifier = @"onboarding.signinLabel";
-  signinLabel.attributedText = [self signinAttributedTextWithBodyFontSize:15.0];
-  [stackView addArrangedSubview:signinLabel];
+  [self configurePressFeedbackForButton:signinLabel];
+  [signinLabel addTarget:self action:@selector(handleSigninTapped:) forControlEvents:UIControlEventTouchUpInside];
+  [signinRowView addArrangedSubview:signinLabel];
+  [NSLayoutConstraint activateConstraints:@[
+    [signinRowView.topAnchor constraintEqualToAnchor:signinContainerView.topAnchor],
+    [signinRowView.bottomAnchor constraintEqualToAnchor:signinContainerView.bottomAnchor],
+    [signinRowView.centerXAnchor constraintEqualToAnchor:signinContainerView.centerXAnchor],
+    [signinRowView.leadingAnchor constraintGreaterThanOrEqualToAnchor:signinContainerView.leadingAnchor],
+    [signinRowView.trailingAnchor constraintLessThanOrEqualToAnchor:signinContainerView.trailingAnchor]
+  ]];
   self.signinLabel = signinLabel;
 
   UILabel *footerLabel = [self labelWithText:@"Onboarding completes only after you tap Start Cooking inside a recipe detail card."
@@ -572,6 +617,7 @@ static UIColor *MRRSecondaryTextColor(void) {
   button.layer.shadowRadius = filledStyle ? 18.0f : 12.0f;
   button.layer.shadowOffset = CGSizeMake(0.0, filledStyle ? 10.0 : 8.0);
   button.backgroundColor = filledStyle ? MRRPrimaryTextColor() : MRRCardSurfaceColor();
+  [self configurePressFeedbackForButton:button];
   [button addTarget:self action:action forControlEvents:UIControlEventTouchUpInside];
 
   UIView *contentWrapper = [[[UIView alloc] init] autorelease];
@@ -616,6 +662,41 @@ static UIColor *MRRSecondaryTextColor(void) {
   ]];
 
   return button;
+}
+
+- (void)configurePressFeedbackForButton:(UIButton *)button {
+  button.adjustsImageWhenHighlighted = NO;
+
+  UIControlEvents touchDownEvents = UIControlEventTouchDown | UIControlEventTouchDragEnter;
+  UIControlEvents touchUpEvents =
+      UIControlEventTouchUpInside | UIControlEventTouchUpOutside | UIControlEventTouchCancel | UIControlEventTouchDragExit;
+
+  [button addTarget:self action:@selector(handlePressableButtonTouchDown:) forControlEvents:touchDownEvents];
+  [button addTarget:self action:@selector(handlePressableButtonTouchUp:) forControlEvents:touchUpEvents];
+}
+
+- (void)handlePressableButtonTouchDown:(UIButton *)sender {
+  [UIView animateWithDuration:0.12
+                        delay:0.0
+                      options:UIViewAnimationOptionBeginFromCurrentState | UIViewAnimationOptionAllowUserInteraction |
+                              UIViewAnimationOptionCurveEaseOut
+                   animations:^{
+                     sender.transform = CGAffineTransformMakeScale(MRROnboardingButtonPressedScale, MRROnboardingButtonPressedScale);
+                     sender.alpha = MRROnboardingButtonPressedAlpha;
+                   }
+                   completion:nil];
+}
+
+- (void)handlePressableButtonTouchUp:(UIButton *)sender {
+  [UIView animateWithDuration:0.16
+                        delay:0.0
+                      options:UIViewAnimationOptionBeginFromCurrentState | UIViewAnimationOptionAllowUserInteraction |
+                              UIViewAnimationOptionCurveEaseOut
+                   animations:^{
+                     sender.transform = CGAffineTransformIdentity;
+                     sender.alpha = 1.0;
+                   }
+                   completion:nil];
 }
 
 - (UIView *)authDividerView {
@@ -670,6 +751,10 @@ static UIColor *MRRSecondaryTextColor(void) {
 
 - (void)handleAppleContinueTapped:(id)sender {
   [self presentAuthComingSoonAlertWithProvider:@"Apple"];
+}
+
+- (void)handleSigninTapped:(id)sender {
+  [self presentAuthComingSoonAlertWithProvider:@"Sign in"];
 }
 
 - (void)presentAuthComingSoonAlertWithProvider:(NSString *)provider {
@@ -779,7 +864,8 @@ static UIColor *MRRSecondaryTextColor(void) {
   self.googleButtonHeightConstraint.constant = buttonHeight;
   self.appleButtonHeightConstraint.constant = buttonHeight;
   self.dividerHeightConstraint.constant = dividerHeight;
-  self.signinLabel.attributedText = [self signinAttributedTextWithBodyFontSize:signinFontSize];
+  self.signinPromptLabel.font = [UIFont systemFontOfSize:signinFontSize weight:UIFontWeightMedium];
+  self.signinLabel.titleLabel.font = [UIFont boldSystemFontOfSize:signinFontSize];
   self.authDividerLabel.font = [UIFont systemFontOfSize:authDividerFontSize weight:UIFontWeightMedium];
 
   NSArray<UIButton *> *authButtons = @[ self.emailButton, self.googleButton, self.appleButton ];
@@ -863,26 +949,6 @@ static UIColor *MRRSecondaryTextColor(void) {
                                             NSForegroundColorAttributeName : MRRSecondaryTextColor(),
                                             NSFontAttributeName : [UIFont systemFontOfSize:fontSize weight:UIFontWeightMedium]
                                           }] autorelease];
-}
-
-- (NSAttributedString *)signinAttributedTextWithBodyFontSize:(CGFloat)bodyFontSize {
-  NSMutableAttributedString *signinText = [[[NSMutableAttributedString alloc] initWithString:@"Already have an account? Sign in"] autorelease];
-  [signinText addAttributes:@{
-    NSForegroundColorAttributeName : MRRSecondaryTextColor(),
-    NSFontAttributeName : [UIFont systemFontOfSize:bodyFontSize weight:UIFontWeightMedium]
-  }
-                      range:NSMakeRange(0, signinText.length)];
-
-  NSRange signInRange = [[signinText string] rangeOfString:@"Sign in"];
-  if (signInRange.location != NSNotFound) {
-    [signinText addAttributes:@{
-      NSForegroundColorAttributeName : MRRPrimaryTextColor(),
-      NSFontAttributeName : [UIFont boldSystemFontOfSize:bodyFontSize]
-    }
-                        range:signInRange];
-  }
-
-  return signinText;
 }
 
 #pragma mark - Carousel

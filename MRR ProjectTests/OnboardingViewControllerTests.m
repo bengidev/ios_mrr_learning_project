@@ -1,6 +1,7 @@
 #import <XCTest/XCTest.h>
 
 #import "../MRR Project/Features/Onboarding/Data/OnboardingStateController.h"
+#import "../MRR Project/Features/Onboarding/Presentation/ViewControllers/OnboardingRecipeDetailViewController.h"
 #import "../MRR Project/Features/Onboarding/Presentation/ViewControllers/OnboardingViewController.h"
 
 @interface OnboardingViewController (Testing) <UICollectionViewDelegate>
@@ -17,6 +18,15 @@
 - (void)handleCarouselTimer:(NSTimer *)timer;
 - (void)scrollViewWillEndDragging:(UIScrollView *)scrollView withVelocity:(CGPoint)velocity targetContentOffset:(inout CGPoint *)targetContentOffset;
 - (void)scrollToRecipeAtIndex:(NSInteger)index animated:(BOOL)animated;
+- (void)handlePressableButtonTouchDown:(UIButton *)sender;
+- (void)handlePressableButtonTouchUp:(UIButton *)sender;
+
+@end
+
+@interface OnboardingRecipeDetailViewController (Testing)
+
+- (void)handlePressableButtonTouchDown:(UIButton *)sender;
+- (void)handlePressableButtonTouchUp:(UIButton *)sender;
 
 @end
 
@@ -215,7 +225,7 @@
   NSArray<NSString *> *identifiers = @[
     @"onboarding.logoImageView", @"onboarding.titleLabel", @"onboarding.subtitleLabel", @"onboarding.carouselCaptionLabel",
     @"onboarding.carouselHelperLabel", @"onboarding.carouselCollectionView", @"onboarding.pageControl", @"onboarding.footerLabel",
-    @"onboarding.benefitTitleLabel", @"onboarding.benefitBodyLabel", @"onboarding.signinLabel"
+    @"onboarding.benefitTitleLabel", @"onboarding.benefitBodyLabel", @"onboarding.signinPromptLabel", @"onboarding.signinLabel"
   ];
 
   for (NSString *identifier in identifiers) {
@@ -235,6 +245,8 @@
     @"onboarding.logoWrapperView",
     @"onboarding.logoContainerView",
     @"onboarding.spacerView",
+    @"onboarding.signinContainerView",
+    @"onboarding.signinRowView",
     @"onboarding.emailButton.contentWrapper",
     @"onboarding.emailButton.iconLabel",
     @"onboarding.emailButton.titleLabel",
@@ -388,6 +400,56 @@
   XCTAssertNotNil(logoImageView.image);
 }
 
+- (void)testAuthButtonShowsPressedFeedbackAndResets {
+  UIButton *emailButton = (UIButton *)[self findViewWithAccessibilityIdentifier:@"onboarding.emailButton" inView:self.viewController.view];
+  XCTAssertNotNil(emailButton);
+
+  BOOL animationsWereEnabled = [UIView areAnimationsEnabled];
+  [UIView setAnimationsEnabled:NO];
+
+  [self.viewController handlePressableButtonTouchDown:emailButton];
+  XCTAssertEqualWithAccuracy(emailButton.transform.a, 0.97, 0.001);
+  XCTAssertEqualWithAccuracy(emailButton.transform.d, 0.97, 0.001);
+  XCTAssertEqualWithAccuracy(emailButton.alpha, 0.88, 0.001);
+
+  [self.viewController handlePressableButtonTouchUp:emailButton];
+  XCTAssertEqualWithAccuracy(emailButton.transform.a, 1.0, 0.001);
+  XCTAssertEqualWithAccuracy(emailButton.transform.d, 1.0, 0.001);
+  XCTAssertEqualWithAccuracy(emailButton.alpha, 1.0, 0.001);
+
+  [UIView setAnimationsEnabled:animationsWereEnabled];
+}
+
+- (void)testSigninButtonShowsPressedFeedbackAndResets {
+  UIButton *signinButton = (UIButton *)[self findViewWithAccessibilityIdentifier:@"onboarding.signinLabel" inView:self.viewController.view];
+  XCTAssertNotNil(signinButton);
+
+  BOOL animationsWereEnabled = [UIView areAnimationsEnabled];
+  [UIView setAnimationsEnabled:NO];
+
+  [self.viewController handlePressableButtonTouchDown:signinButton];
+  XCTAssertEqualWithAccuracy(signinButton.transform.a, 0.97, 0.001);
+  XCTAssertEqualWithAccuracy(signinButton.transform.d, 0.97, 0.001);
+  XCTAssertEqualWithAccuracy(signinButton.alpha, 0.88, 0.001);
+
+  [self.viewController handlePressableButtonTouchUp:signinButton];
+  XCTAssertEqualWithAccuracy(signinButton.transform.a, 1.0, 0.001);
+  XCTAssertEqualWithAccuracy(signinButton.transform.d, 1.0, 0.001);
+  XCTAssertEqualWithAccuracy(signinButton.alpha, 1.0, 0.001);
+
+  [UIView setAnimationsEnabled:animationsWereEnabled];
+}
+
+- (void)testSigninButtonUsesIntrinsicWidthInsteadOfFullRowWidth {
+  [self layoutOnboardingForWindowSize:CGSizeMake(390.0, 844.0)];
+
+  CGRect promptFrame = [self frameForAccessibilityIdentifier:@"onboarding.signinPromptLabel"];
+  CGRect signinFrame = [self frameForAccessibilityIdentifier:@"onboarding.signinLabel"];
+
+  XCTAssertLessThan(CGRectGetWidth(signinFrame), CGRectGetWidth(promptFrame));
+  XCTAssertGreaterThanOrEqual(CGRectGetMinX(signinFrame), CGRectGetMaxX(promptFrame));
+}
+
 - (void)testAuthButtonsAppearWithinInitialViewport {
   NSArray<NSString *> *buttonIdentifiers = @[ @"onboarding.emailButton", @"onboarding.googleButton", @"onboarding.appleButton" ];
   CGFloat viewportBottom = CGRectGetHeight(self.viewController.view.bounds) + 1.0;
@@ -451,6 +513,31 @@
 
   XCTAssertFalse(self.delegateSpy.didFinishOnboarding);
   XCTAssertNil(self.viewController.presentedViewController);
+}
+
+- (void)testRecipeDetailStartButtonShowsPressedFeedbackAndResets {
+  [self presentFirstRecipe];
+
+  UIButton *startButton = (UIButton *)[self findViewWithAccessibilityIdentifier:@"onboarding.recipeDetail.startCookingButton"
+                                                                         inView:self.viewController.presentedViewController.view];
+  XCTAssertNotNil(startButton);
+
+  BOOL animationsWereEnabled = [UIView areAnimationsEnabled];
+  [UIView setAnimationsEnabled:NO];
+
+  OnboardingRecipeDetailViewController *detailViewController =
+      (OnboardingRecipeDetailViewController *)self.viewController.presentedViewController;
+  [detailViewController handlePressableButtonTouchDown:startButton];
+  XCTAssertEqualWithAccuracy(startButton.transform.a, 0.97, 0.001);
+  XCTAssertEqualWithAccuracy(startButton.transform.d, 0.97, 0.001);
+  XCTAssertEqualWithAccuracy(startButton.alpha, 0.88, 0.001);
+
+  [detailViewController handlePressableButtonTouchUp:startButton];
+  XCTAssertEqualWithAccuracy(startButton.transform.a, 1.0, 0.001);
+  XCTAssertEqualWithAccuracy(startButton.transform.d, 1.0, 0.001);
+  XCTAssertEqualWithAccuracy(startButton.alpha, 1.0, 0.001);
+
+  [UIView setAnimationsEnabled:animationsWereEnabled];
 }
 
 - (void)presentFirstRecipe {
@@ -694,7 +781,7 @@
 - (void)assertPrimaryOnboardingContentFitsCurrentViewport {
   NSArray<NSString *> *identifiers = @[
     @"onboarding.benefitTitleLabel", @"onboarding.benefitBodyLabel", @"onboarding.emailButton", @"onboarding.googleButton",
-    @"onboarding.appleButton", @"onboarding.signinLabel"
+    @"onboarding.appleButton", @"onboarding.signinPromptLabel", @"onboarding.signinLabel"
   ];
   CGFloat viewportBottom = CGRectGetHeight(self.viewController.view.bounds) + 1.0;
 

@@ -4,6 +4,8 @@
 #import "../../Data/OnboardingStateController.h"
 
 static CGFloat const MRRRecipeDetailHeaderHeight = 292.0;
+static CGFloat const MRRRecipeDetailButtonPressedScale = 0.97;
+static CGFloat const MRRRecipeDetailButtonPressedAlpha = 0.88;
 
 static UIColor *MRRDynamicFallbackColor(UIColor *lightColor, UIColor *darkColor) {
   if (@available(iOS 13.0, *)) {
@@ -63,6 +65,9 @@ static UIColor *MRRNamedColor(NSString *name, UIColor *lightColor, UIColor *dark
 - (NSString *)detailIdentifierForSuffix:(NSString *)suffix;
 - (void)didTapCloseButton;
 - (void)didTapStartCookingButton;
+- (void)configurePressFeedbackForButton:(UIButton *)button;
+- (void)handlePressableButtonTouchDown:(UIButton *)sender;
+- (void)handlePressableButtonTouchUp:(UIButton *)sender;
 - (void)updateLayoutMetricsIfNeeded;
 - (CGSize)layoutViewportSize;
 
@@ -175,6 +180,7 @@ static UIColor *MRRNamedColor(NSString *name, UIColor *lightColor, UIColor *dark
   closeButton.titleLabel.font = [UIFont boldSystemFontOfSize:20.0];
   [closeButton setTitle:@"X" forState:UIControlStateNormal];
   [closeButton setTitleColor:[UIColor whiteColor] forState:UIControlStateNormal];
+  [self configurePressFeedbackForButton:closeButton];
   [closeButton addTarget:self action:@selector(didTapCloseButton) forControlEvents:UIControlEventTouchUpInside];
   [heroContainerView addSubview:closeButton];
   self.closeButton = closeButton;
@@ -247,6 +253,7 @@ static UIColor *MRRNamedColor(NSString *name, UIColor *lightColor, UIColor *dark
   startButton.titleLabel.font = [UIFont boldSystemFontOfSize:18.0];
   [startButton setTitle:@"Start Cooking" forState:UIControlStateNormal];
   [startButton setTitleColor:[UIColor whiteColor] forState:UIControlStateNormal];
+  [self configurePressFeedbackForButton:startButton];
   [startButton addTarget:self action:@selector(didTapStartCookingButton) forControlEvents:UIControlEventTouchUpInside];
   [contentStackView addArrangedSubview:startButton];
   self.startButton = startButton;
@@ -309,6 +316,41 @@ static UIColor *MRRNamedColor(NSString *name, UIColor *lightColor, UIColor *dark
     [heroImageView.trailingAnchor constraintEqualToAnchor:heroContainerView.trailingAnchor],
     self.heroImageHeightConstraint
   ]];
+}
+
+- (void)configurePressFeedbackForButton:(UIButton *)button {
+  button.adjustsImageWhenHighlighted = NO;
+
+  UIControlEvents touchDownEvents = UIControlEventTouchDown | UIControlEventTouchDragEnter;
+  UIControlEvents touchUpEvents =
+      UIControlEventTouchUpInside | UIControlEventTouchUpOutside | UIControlEventTouchCancel | UIControlEventTouchDragExit;
+
+  [button addTarget:self action:@selector(handlePressableButtonTouchDown:) forControlEvents:touchDownEvents];
+  [button addTarget:self action:@selector(handlePressableButtonTouchUp:) forControlEvents:touchUpEvents];
+}
+
+- (void)handlePressableButtonTouchDown:(UIButton *)sender {
+  [UIView animateWithDuration:0.12
+                        delay:0.0
+                      options:UIViewAnimationOptionBeginFromCurrentState | UIViewAnimationOptionAllowUserInteraction |
+                              UIViewAnimationOptionCurveEaseOut
+                   animations:^{
+                     sender.transform = CGAffineTransformMakeScale(MRRRecipeDetailButtonPressedScale, MRRRecipeDetailButtonPressedScale);
+                     sender.alpha = MRRRecipeDetailButtonPressedAlpha;
+                   }
+                   completion:nil];
+}
+
+- (void)handlePressableButtonTouchUp:(UIButton *)sender {
+  [UIView animateWithDuration:0.16
+                        delay:0.0
+                      options:UIViewAnimationOptionBeginFromCurrentState | UIViewAnimationOptionAllowUserInteraction |
+                              UIViewAnimationOptionCurveEaseOut
+                   animations:^{
+                     sender.transform = CGAffineTransformIdentity;
+                     sender.alpha = 1.0;
+                   }
+                   completion:nil];
 }
 
 - (UILabel *)buildLabelWithText:(NSString *)text font:(UIFont *)font color:(UIColor *)color {
