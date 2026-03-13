@@ -1,7 +1,5 @@
 #import <UIKit/UIKit.h>
 
-#import "../../../../Layout/MRRLayoutScaling.h"
-
 NS_ASSUME_NONNULL_BEGIN
 
 @class OnboardingStateController;
@@ -18,8 +16,6 @@ NS_ASSUME_NONNULL_BEGIN
 @property(nonatomic, assign, nullable) id<OnboardingViewControllerDelegate> delegate;
 
 - (instancetype)initWithStateController:(OnboardingStateController *)stateController;
-- (instancetype)initWithStateController:(OnboardingStateController *)stateController
-                       layoutScalingMode:(MRRLayoutScalingMode)layoutScalingMode;
 
 @end
 

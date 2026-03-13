@@ -25,7 +25,6 @@ static UIColor *MRRNamedColor(NSString *name, UIColor *lightColor, UIColor *dark
 
 @interface OnboardingRecipeDetailViewController () <UIScrollViewDelegate>
 
-@property(nonatomic, assign) MRRLayoutScalingMode layoutScalingMode;
 @property(nonatomic, retain, readwrite) OnboardingRecipe *recipe;
 @property(nonatomic, retain) UIScrollView *scrollView;
 @property(nonatomic, retain) UIImageView *heroImageView;
@@ -72,16 +71,11 @@ static UIColor *MRRNamedColor(NSString *name, UIColor *lightColor, UIColor *dark
 @implementation OnboardingRecipeDetailViewController
 
 - (instancetype)initWithRecipe:(OnboardingRecipe *)recipe {
-  return [self initWithRecipe:recipe layoutScalingMode:MRRLayoutScalingModeGuardedFluidScaling];
-}
-
-- (instancetype)initWithRecipe:(OnboardingRecipe *)recipe layoutScalingMode:(MRRLayoutScalingMode)layoutScalingMode {
   NSParameterAssert(recipe != nil);
 
   self = [super initWithNibName:nil bundle:nil];
   if (self) {
     _recipe = [recipe retain];
-    _layoutScalingMode = layoutScalingMode;
     self.modalPresentationStyle = UIModalPresentationOverFullScreen;
     self.modalTransitionStyle = UIModalTransitionStyleCrossDissolve;
   }
@@ -512,25 +506,25 @@ static UIColor *MRRNamedColor(NSString *name, UIColor *lightColor, UIColor *dark
     return;
   }
 
-  CGFloat cardTopInset = MRRLayoutScaledValue(14.0, viewportSize, MRRLayoutScaleAxisHeight, self.layoutScalingMode);
-  CGFloat cardSideInset = MRRLayoutScaledValue(18.0, viewportSize, MRRLayoutScaleAxisWidth, self.layoutScalingMode);
-  CGFloat cardBottomInset = MRRLayoutScaledValue(12.0, viewportSize, MRRLayoutScaleAxisHeight, self.layoutScalingMode);
-  CGFloat cardCornerRadius = MRRLayoutScaledValue(30.0, viewportSize, MRRLayoutScaleAxisMinDimension, self.layoutScalingMode);
-  CGFloat headerHeight = MRRLayoutScaledValue(MRRRecipeDetailHeaderHeight, viewportSize, MRRLayoutScaleAxisHeight, self.layoutScalingMode);
-  CGFloat closeButtonInset = MRRLayoutScaledValue(18.0, viewportSize, MRRLayoutScaleAxisWidth, self.layoutScalingMode);
-  CGFloat closeButtonSize = MRRLayoutScaledValue(38.0, viewportSize, MRRLayoutScaleAxisMinDimension, self.layoutScalingMode);
-  CGFloat contentTopInset = MRRLayoutScaledValue(24.0, viewportSize, MRRLayoutScaleAxisHeight, self.layoutScalingMode);
-  CGFloat contentSideInset = MRRLayoutScaledValue(24.0, viewportSize, MRRLayoutScaleAxisWidth, self.layoutScalingMode);
-  CGFloat contentBottomInset = MRRLayoutScaledValue(28.0, viewportSize, MRRLayoutScaleAxisHeight, self.layoutScalingMode);
-  CGFloat stackSpacing = MRRLayoutScaledValue(18.0, viewportSize, MRRLayoutScaleAxisHeight, self.layoutScalingMode);
-  CGFloat subtitleFontSize = MRRLayoutScaledValue(12.0, viewportSize, MRRLayoutScaleAxisWidth, self.layoutScalingMode);
-  CGFloat titleFontSize = MRRLayoutScaledValue(32.0, viewportSize, MRRLayoutScaleAxisWidth, self.layoutScalingMode);
-  CGFloat summaryFontSize = MRRLayoutScaledValue(16.0, viewportSize, MRRLayoutScaleAxisWidth, self.layoutScalingMode);
-  CGFloat startButtonHeight = MRRLayoutScaledValue(60.0, viewportSize, MRRLayoutScaleAxisHeight, self.layoutScalingMode);
-  CGFloat startButtonCornerRadius = MRRLayoutScaledValue(18.0, viewportSize, MRRLayoutScaleAxisMinDimension, self.layoutScalingMode);
-  CGFloat startButtonVerticalInset = MRRLayoutScaledValue(17.0, viewportSize, MRRLayoutScaleAxisHeight, self.layoutScalingMode);
-  CGFloat startButtonHorizontalInset = MRRLayoutScaledValue(20.0, viewportSize, MRRLayoutScaleAxisWidth, self.layoutScalingMode);
-  CGFloat startButtonFontSize = MRRLayoutScaledValue(18.0, viewportSize, MRRLayoutScaleAxisWidth, self.layoutScalingMode);
+  CGFloat cardTopInset = MRRLayoutScaledValue(14.0, viewportSize, MRRLayoutScaleAxisHeight);
+  CGFloat cardSideInset = MRRLayoutScaledValue(18.0, viewportSize, MRRLayoutScaleAxisWidth);
+  CGFloat cardBottomInset = MRRLayoutScaledValue(12.0, viewportSize, MRRLayoutScaleAxisHeight);
+  CGFloat cardCornerRadius = MRRLayoutScaledValue(30.0, viewportSize, MRRLayoutScaleAxisMinDimension);
+  CGFloat headerHeight = MRRLayoutScaledValue(MRRRecipeDetailHeaderHeight, viewportSize, MRRLayoutScaleAxisHeight);
+  CGFloat closeButtonInset = MRRLayoutScaledValue(18.0, viewportSize, MRRLayoutScaleAxisWidth);
+  CGFloat closeButtonSize = MRRLayoutScaledValue(38.0, viewportSize, MRRLayoutScaleAxisMinDimension);
+  CGFloat contentTopInset = MRRLayoutScaledValue(24.0, viewportSize, MRRLayoutScaleAxisHeight);
+  CGFloat contentSideInset = MRRLayoutScaledValue(24.0, viewportSize, MRRLayoutScaleAxisWidth);
+  CGFloat contentBottomInset = MRRLayoutScaledValue(28.0, viewportSize, MRRLayoutScaleAxisHeight);
+  CGFloat stackSpacing = MRRLayoutScaledValue(18.0, viewportSize, MRRLayoutScaleAxisHeight);
+  CGFloat subtitleFontSize = MRRLayoutScaledValue(12.0, viewportSize, MRRLayoutScaleAxisWidth);
+  CGFloat titleFontSize = MRRLayoutScaledValue(32.0, viewportSize, MRRLayoutScaleAxisWidth);
+  CGFloat summaryFontSize = MRRLayoutScaledValue(16.0, viewportSize, MRRLayoutScaleAxisWidth);
+  CGFloat startButtonHeight = MRRLayoutScaledValue(60.0, viewportSize, MRRLayoutScaleAxisHeight);
+  CGFloat startButtonCornerRadius = MRRLayoutScaledValue(18.0, viewportSize, MRRLayoutScaleAxisMinDimension);
+  CGFloat startButtonVerticalInset = MRRLayoutScaledValue(17.0, viewportSize, MRRLayoutScaleAxisHeight);
+  CGFloat startButtonHorizontalInset = MRRLayoutScaledValue(20.0, viewportSize, MRRLayoutScaleAxisWidth);
+  CGFloat startButtonFontSize = MRRLayoutScaledValue(18.0, viewportSize, MRRLayoutScaleAxisWidth);
 
   self.cardTopConstraint.constant = cardTopInset;
   self.cardLeadingConstraint.constant = cardSideInset;
@@ -543,8 +537,7 @@ static UIColor *MRRNamedColor(NSString *name, UIColor *lightColor, UIColor *dark
   self.closeButtonWidthConstraint.constant = closeButtonSize;
   self.closeButtonHeightConstraint.constant = closeButtonSize;
   self.closeButton.layer.cornerRadius = closeButtonSize / 2.0;
-  self.closeButton.titleLabel.font = [UIFont boldSystemFontOfSize:MRRLayoutScaledValue(20.0, viewportSize, MRRLayoutScaleAxisWidth,
-                                                                                        self.layoutScalingMode)];
+  self.closeButton.titleLabel.font = [UIFont boldSystemFontOfSize:MRRLayoutScaledValue(20.0, viewportSize, MRRLayoutScaleAxisWidth)];
   self.contentStackTopConstraint.constant = contentTopInset;
   self.contentStackLeadingConstraint.constant = contentSideInset;
   self.contentStackTrailingConstraint.constant = -contentSideInset;

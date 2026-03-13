@@ -5,8 +5,7 @@
 @interface MainMenuViewControllerTests : XCTestCase
 
 - (UIView *)findViewWithAccessibilityIdentifier:(NSString *)identifier inView:(UIView *)view;
-- (NSDictionary<NSString *, NSNumber *> *)metricsForLayoutScalingMode:(MRRLayoutScalingMode)layoutScalingMode
-                                                            windowSize:(CGSize)size;
+- (NSDictionary<NSString *, NSNumber *> *)metricsForViewportSize:(CGSize)size;
 
 @end
 
@@ -14,7 +13,7 @@
 
 - (void)testMainMenuExposesCoreAccessibilityIdentifiers {
   UIWindow *window = [[UIWindow alloc] initWithFrame:CGRectMake(0.0, 0.0, 390.0, 844.0)];
-  MainMenuViewController *viewController = [[MainMenuViewController alloc] initWithLayoutScalingMode:MRRLayoutScalingModeGuardedFluidScaling];
+  MainMenuViewController *viewController = [[MainMenuViewController alloc] init];
   window.rootViewController = viewController;
   [window makeKeyAndVisible];
   [viewController loadViewIfNeeded];
@@ -24,15 +23,12 @@
   XCTAssertNotNil([self findViewWithAccessibilityIdentifier:@"mainMenu.summaryLabel" inView:viewController.view]);
 }
 
-- (void)testPureScreenScalingShrinksMainMenuMoreThanGuardedFluidScalingOnSmallViewport {
-  CGSize compactViewport = CGSizeMake(320.0, 568.0);
-  NSDictionary<NSString *, NSNumber *> *guardedMetrics =
-      [self metricsForLayoutScalingMode:MRRLayoutScalingModeGuardedFluidScaling windowSize:compactViewport];
-  NSDictionary<NSString *, NSNumber *> *pureMetrics =
-      [self metricsForLayoutScalingMode:MRRLayoutScalingModePureScreenScaling windowSize:compactViewport];
+- (void)testLayoutMetricsScaleWithViewportWidth {
+  NSDictionary<NSString *, NSNumber *> *narrowMetrics = [self metricsForViewportSize:CGSizeMake(375.0, 812.0)];
+  NSDictionary<NSString *, NSNumber *> *wideMetrics = [self metricsForViewportSize:CGSizeMake(430.0, 932.0)];
 
-  XCTAssertLessThan(pureMetrics[@"titleFontSize"].doubleValue, guardedMetrics[@"titleFontSize"].doubleValue);
-  XCTAssertLessThan(pureMetrics[@"horizontalInset"].doubleValue, guardedMetrics[@"horizontalInset"].doubleValue);
+  XCTAssertGreaterThan(wideMetrics[@"horizontalInset"].doubleValue, narrowMetrics[@"horizontalInset"].doubleValue);
+  XCTAssertGreaterThan(wideMetrics[@"titleFontSize"].doubleValue, narrowMetrics[@"titleFontSize"].doubleValue);
 }
 
 - (UIView *)findViewWithAccessibilityIdentifier:(NSString *)identifier inView:(UIView *)view {
@@ -50,10 +46,9 @@
   return nil;
 }
 
-- (NSDictionary<NSString *, NSNumber *> *)metricsForLayoutScalingMode:(MRRLayoutScalingMode)layoutScalingMode
-                                                            windowSize:(CGSize)size {
+- (NSDictionary<NSString *, NSNumber *> *)metricsForViewportSize:(CGSize)size {
   UIWindow *window = [[UIWindow alloc] initWithFrame:CGRectMake(0.0, 0.0, size.width, size.height)];
-  MainMenuViewController *viewController = [[MainMenuViewController alloc] initWithLayoutScalingMode:layoutScalingMode];
+  MainMenuViewController *viewController = [[MainMenuViewController alloc] init];
   window.rootViewController = viewController;
   [window makeKeyAndVisible];
   [viewController loadViewIfNeeded];

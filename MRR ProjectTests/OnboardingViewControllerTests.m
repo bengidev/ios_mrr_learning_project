@@ -8,7 +8,14 @@
 @property(nonatomic, readonly) UICollectionView *carouselCollectionView;
 @property(nonatomic, readonly) UIStackView *contentStackView;
 @property(nonatomic, readonly) UIScrollView *scrollView;
-@property(nonatomic, readonly, getter=isCompactLayoutActive) BOOL compactLayoutActive;
+@property(nonatomic, assign) NSInteger currentRecipeIndex;
+@property(nonatomic, assign) NSInteger currentCarouselItemIndex;
+
+- (NSInteger)middleCarouselItemIndexForRecipeIndex:(NSInteger)recipeIndex;
+- (CGFloat)contentOffsetXForCarouselItemIndex:(NSInteger)itemIndex;
+- (void)recenterCarouselIfNeeded;
+- (void)handleCarouselTimer:(NSTimer *)timer;
+- (void)scrollViewWillEndDragging:(UIScrollView *)scrollView withVelocity:(CGPoint)velocity targetContentOffset:(inout CGPoint *)targetContentOffset;
 
 @end
 
@@ -41,11 +48,11 @@
 - (CGRect)frameForAccessibilityIdentifier:(NSString *)identifier;
 - (CGFloat)fontSizeForAccessibilityIdentifier:(NSString *)identifier;
 - (NSDictionary<NSString *, NSNumber *> *)currentAdaptiveOnboardingMetrics;
+- (NSDictionary<NSString *, NSNumber *> *)currentRecipeDetailMetrics;
 - (CGFloat)visibleCarouselLabelFontSizeWithSuffix:(NSString *)suffix;
-- (void)assertAuthButtonsMeetMinimumTapTarget;
 - (void)assertPrimaryOnboardingContentFitsCurrentViewport;
-- (NSDictionary<NSString *, NSNumber *> *)adaptiveMetricsForLayoutScalingMode:(MRRLayoutScalingMode)layoutScalingMode
-                                                                  windowSize:(CGSize)size;
+- (NSDictionary<NSString *, NSNumber *> *)adaptiveMetricsForWindowSize:(CGSize)size;
+- (NSDictionary<NSString *, NSNumber *> *)recipeDetailMetricsForWindowSize:(CGSize)size;
 - (void)spinMainRunLoop;
 
 @end
@@ -112,6 +119,82 @@
 
   XCTAssertNotNil(self.viewController.presentedViewController);
   XCTAssertEqualObjects(self.viewController.presentedViewController.view.accessibilityIdentifier, @"onboarding.recipeDetail.view");
+}
+
+- (void)testCarouselUsesCenteredOffsetModelForPaging {
+  [self layoutOnboardingForWindowSize:CGSizeMake(430.0, 932.0)];
+  [self.viewController.carouselCollectionView layoutIfNeeded];
+  [self spinMainRunLoop];
+
+  UICollectionViewFlowLayout *layout = (UICollectionViewFlowLayout *)self.viewController.carouselCollectionView.collectionViewLayout;
+  NSInteger targetIndex = [self.viewController middleCarouselItemIndexForRecipeIndex:1];
+  UICollectionViewLayoutAttributes *attributes =
+      [layout layoutAttributesForItemAtIndexPath:[NSIndexPath indexPathForItem:targetIndex inSection:0]];
+  XCTAssertNotNil(attributes);
+  CGFloat expectedOffset = MAX(attributes.center.x - (CGRectGetWidth(self.viewController.carouselCollectionView.bounds) / 2.0), 0.0);
+
+  XCTAssertEqualWithAccuracy([self.viewController contentOffsetXForCarouselItemIndex:targetIndex], expectedOffset, 0.5);
+}
+
+- (void)testRecenterMovesBoundaryCopyBackToMiddleLoopForSameRecipe {
+  [self layoutOnboardingForWindowSize:CGSizeMake(430.0, 932.0)];
+  [self.viewController.carouselCollectionView layoutIfNeeded];
+  [self spinMainRunLoop];
+
+  NSInteger recipeCount = [self.stateController onboardingRecipes].count;
+  NSInteger loopCount = [self.viewController.carouselCollectionView numberOfItemsInSection:0] / recipeCount;
+  NSInteger recipeIndex = recipeCount - 1;
+  NSInteger boundaryIndex = ((loopCount - 1) * recipeCount) + recipeIndex;
+  NSInteger middleIndex = [self.viewController middleCarouselItemIndexForRecipeIndex:recipeIndex];
+
+  self.viewController.currentRecipeIndex = recipeIndex;
+  self.viewController.currentCarouselItemIndex = boundaryIndex;
+  [self.viewController.carouselCollectionView setContentOffset:CGPointMake([self.viewController contentOffsetXForCarouselItemIndex:boundaryIndex], 0.0)
+                                                 animated:NO];
+
+  [self.viewController recenterCarouselIfNeeded];
+
+  XCTAssertEqual(self.viewController.currentRecipeIndex, recipeIndex);
+  XCTAssertEqual(self.viewController.currentCarouselItemIndex, middleIndex);
+  XCTAssertEqualWithAccuracy(self.viewController.carouselCollectionView.contentOffset.x,
+                             [self.viewController contentOffsetXForCarouselItemIndex:middleIndex], 0.5);
+}
+
+- (void)testAutoscrollAdvancesFromBoundaryCopyWithoutResettingToFirstColumn {
+  [self layoutOnboardingForWindowSize:CGSizeMake(430.0, 932.0)];
+  [self.viewController.carouselCollectionView layoutIfNeeded];
+  [self spinMainRunLoop];
+
+  NSInteger recipeCount = [self.stateController onboardingRecipes].count;
+  NSInteger loopCount = [self.viewController.carouselCollectionView numberOfItemsInSection:0] / recipeCount;
+  NSInteger lastRecipeIndex = recipeCount - 1;
+  NSInteger boundaryIndex = ((loopCount - 1) * recipeCount) + lastRecipeIndex;
+  NSInteger expectedNextIndex = [self.viewController middleCarouselItemIndexForRecipeIndex:lastRecipeIndex] + 1;
+
+  self.viewController.currentRecipeIndex = lastRecipeIndex;
+  self.viewController.currentCarouselItemIndex = boundaryIndex;
+  [self.viewController handleCarouselTimer:nil];
+  [self spinMainRunLoop];
+
+  XCTAssertEqual(self.viewController.currentCarouselItemIndex, expectedNextIndex);
+  XCTAssertEqual(self.viewController.currentRecipeIndex, 0);
+}
+
+- (void)testDragSnappingUsesSameCenteredOffsetAsCarouselHelper {
+  [self layoutOnboardingForWindowSize:CGSizeMake(430.0, 932.0)];
+  [self.viewController.carouselCollectionView layoutIfNeeded];
+  [self spinMainRunLoop];
+
+  NSInteger targetIndex = [self.viewController middleCarouselItemIndexForRecipeIndex:2];
+  CGPoint targetOffset = CGPointMake([self.viewController contentOffsetXForCarouselItemIndex:targetIndex] + 9.0, 0.0);
+
+  [self.viewController scrollViewWillEndDragging:self.viewController.carouselCollectionView
+                                    withVelocity:CGPointZero
+                              targetContentOffset:&targetOffset];
+
+  XCTAssertEqualWithAccuracy(targetOffset.x, [self.viewController contentOffsetXForCarouselItemIndex:targetIndex], 0.5);
+  XCTAssertEqual(self.viewController.currentCarouselItemIndex, targetIndex);
+  XCTAssertEqual(self.viewController.currentRecipeIndex, 2);
 }
 
 - (void)testOnboardingExposesCoreAccessibilityIdentifiers {
@@ -212,40 +295,27 @@
   [self layoutOnboardingForWindowSize:CGSizeMake(414.0, 896.0)];
 
   [self assertPrimaryOnboardingContentFitsCurrentViewport];
-  [self assertAuthButtonsMeetMinimumTapTarget];
 }
 
 - (void)testAdaptiveMetricsStayWithinReadableRangesAcrossDifferentIPhoneSizes {
-  [self layoutOnboardingForWindowSize:CGSizeMake(375.0, 812.0)];
-  NSDictionary<NSString *, NSNumber *> *baseMetrics = [self currentAdaptiveOnboardingMetrics];
+  NSDictionary<NSString *, NSNumber *> *compactMetrics = [self adaptiveMetricsForWindowSize:CGSizeMake(320.0, 568.0)];
+  NSDictionary<NSString *, NSNumber *> *baseMetrics = [self adaptiveMetricsForWindowSize:CGSizeMake(390.0, 844.0)];
+  NSDictionary<NSString *, NSNumber *> *expandedMetrics = [self adaptiveMetricsForWindowSize:CGSizeMake(430.0, 932.0)];
 
-  [self layoutOnboardingForWindowSize:CGSizeMake(414.0, 812.0)];
-  NSDictionary<NSString *, NSNumber *> *widerMetrics = [self currentAdaptiveOnboardingMetrics];
-
-  [self layoutOnboardingForWindowSize:CGSizeMake(375.0, 896.0)];
-  NSDictionary<NSString *, NSNumber *> *tallerMetrics = [self currentAdaptiveOnboardingMetrics];
-
-  XCTAssertGreaterThanOrEqual(baseMetrics[@"titleFontSize"].doubleValue, 40.0);
-  XCTAssertLessThanOrEqual(widerMetrics[@"titleFontSize"].doubleValue, 44.5);
-  XCTAssertGreaterThanOrEqual(baseMetrics[@"buttonHeight"].doubleValue, 44.0);
-  XCTAssertLessThanOrEqual(tallerMetrics[@"buttonHeight"].doubleValue, 52.5);
-  XCTAssertGreaterThanOrEqual(baseMetrics[@"carouselItemWidth"].doubleValue, 148.0);
-  XCTAssertLessThanOrEqual(widerMetrics[@"carouselItemWidth"].doubleValue, 188.0);
-
-  XCTAssertGreaterThan(widerMetrics[@"titleFontSize"].doubleValue, baseMetrics[@"titleFontSize"].doubleValue);
-  XCTAssertGreaterThan(widerMetrics[@"horizontalInset"].doubleValue, baseMetrics[@"horizontalInset"].doubleValue);
-  XCTAssertGreaterThan(widerMetrics[@"carouselItemWidth"].doubleValue, baseMetrics[@"carouselItemWidth"].doubleValue);
-  XCTAssertEqualWithAccuracy(tallerMetrics[@"titleFontSize"].doubleValue, baseMetrics[@"titleFontSize"].doubleValue, 0.2);
-  XCTAssertEqualWithAccuracy(tallerMetrics[@"carouselItemWidth"].doubleValue, baseMetrics[@"carouselItemWidth"].doubleValue, 0.5);
-
-  XCTAssertGreaterThan(tallerMetrics[@"stackSpacing"].doubleValue, baseMetrics[@"stackSpacing"].doubleValue);
-  XCTAssertGreaterThan(tallerMetrics[@"buttonHeight"].doubleValue, baseMetrics[@"buttonHeight"].doubleValue);
-  XCTAssertEqualWithAccuracy(widerMetrics[@"stackSpacing"].doubleValue, baseMetrics[@"stackSpacing"].doubleValue, 0.2);
-  XCTAssertEqualWithAccuracy(widerMetrics[@"buttonHeight"].doubleValue, baseMetrics[@"buttonHeight"].doubleValue, 0.2);
+  XCTAssertLessThan(compactMetrics[@"titleFontSize"].doubleValue, baseMetrics[@"titleFontSize"].doubleValue);
+  XCTAssertLessThan(compactMetrics[@"buttonHeight"].doubleValue, baseMetrics[@"buttonHeight"].doubleValue);
+  XCTAssertLessThan(compactMetrics[@"carouselItemWidth"].doubleValue, baseMetrics[@"carouselItemWidth"].doubleValue);
+  XCTAssertGreaterThan(expandedMetrics[@"titleFontSize"].doubleValue, baseMetrics[@"titleFontSize"].doubleValue);
+  XCTAssertGreaterThan(expandedMetrics[@"buttonHeight"].doubleValue, baseMetrics[@"buttonHeight"].doubleValue);
+  XCTAssertGreaterThan(expandedMetrics[@"carouselItemWidth"].doubleValue, baseMetrics[@"carouselItemWidth"].doubleValue);
+  XCTAssertGreaterThan(compactMetrics[@"carouselCellTitleFontSize"].doubleValue, 0.0);
+  XCTAssertGreaterThan(compactMetrics[@"carouselCellMetadataFontSize"].doubleValue, 0.0);
 }
 
 - (void)testOnboardingFitsAcrossCommonIPhoneViewportSizes {
   NSArray<NSValue *> *viewportSizes = @[
+    [NSValue valueWithCGSize:CGSizeMake(320.0, 568.0)],
+    [NSValue valueWithCGSize:CGSizeMake(375.0, 667.0)],
     [NSValue valueWithCGSize:CGSizeMake(375.0, 812.0)],
     [NSValue valueWithCGSize:CGSizeMake(390.0, 844.0)],
     [NSValue valueWithCGSize:CGSizeMake(393.0, 852.0)],
@@ -257,12 +327,12 @@
     CGSize viewportSize = viewportSizeValue.CGSizeValue;
     [self layoutOnboardingForWindowSize:viewportSize];
     [self assertPrimaryOnboardingContentFitsCurrentViewport];
-    [self assertAuthButtonsMeetMinimumTapTarget];
   }
 }
 
 - (void)testCarouselSizingIsWidthDrivenAndBoundedAcrossCommonIPhoneViewportSizes {
   NSArray<NSValue *> *viewportSizes = @[
+    [NSValue valueWithCGSize:CGSizeMake(320.0, 568.0)],
     [NSValue valueWithCGSize:CGSizeMake(375.0, 812.0)],
     [NSValue valueWithCGSize:CGSizeMake(390.0, 844.0)],
     [NSValue valueWithCGSize:CGSizeMake(393.0, 852.0)],
@@ -280,10 +350,8 @@
     CGFloat carouselWidth = CGRectGetWidth(self.viewController.carouselCollectionView.bounds);
     CGFloat carouselHeight = CGRectGetHeight(self.viewController.carouselCollectionView.bounds);
 
-    XCTAssertGreaterThanOrEqual(layout.itemSize.width, 148.0, @"%.0fx%.0f should keep a readable card width", viewportSize.width,
+    XCTAssertGreaterThanOrEqual(layout.itemSize.width, 120.0, @"%.0fx%.0f should keep a readable card width", viewportSize.width,
                                 viewportSize.height);
-    XCTAssertLessThanOrEqual(layout.itemSize.width, 188.0, @"%.0fx%.0f should bound card width growth", viewportSize.width,
-                             viewportSize.height);
     XCTAssertLessThanOrEqual(layout.itemSize.width, ((carouselWidth - layout.minimumLineSpacing) / 2.0) + 0.5,
                              @"%.0fx%.0f should size cards from carousel width", viewportSize.width, viewportSize.height);
     XCTAssertLessThanOrEqual(layout.itemSize.height, carouselHeight + 0.5, @"%.0fx%.0f should keep card height within the carousel",
@@ -298,34 +366,49 @@
 }
 
 - (void)testCarouselCardsAdaptInternalTypographyAcrossViewportSizes {
-  [self layoutOnboardingForWindowSize:CGSizeMake(375.0, 812.0)];
+  [self layoutOnboardingForWindowSize:CGSizeMake(320.0, 568.0)];
   NSDictionary<NSString *, NSNumber *> *compactMetrics = [self currentAdaptiveOnboardingMetrics];
 
-  [self layoutOnboardingForWindowSize:CGSizeMake(414.0, 896.0)];
+  [self layoutOnboardingForWindowSize:CGSizeMake(430.0, 932.0)];
   NSDictionary<NSString *, NSNumber *> *expandedMetrics = [self currentAdaptiveOnboardingMetrics];
 
-  XCTAssertGreaterThanOrEqual(compactMetrics[@"carouselCellTitleFontSize"].doubleValue, 17.0);
-  XCTAssertLessThanOrEqual(compactMetrics[@"carouselCellTitleFontSize"].doubleValue, 20.0);
-  XCTAssertGreaterThanOrEqual(expandedMetrics[@"carouselCellTitleFontSize"].doubleValue, 17.0);
-  XCTAssertLessThanOrEqual(expandedMetrics[@"carouselCellTitleFontSize"].doubleValue, 20.0);
-  XCTAssertGreaterThanOrEqual(compactMetrics[@"carouselCellMetadataFontSize"].doubleValue, 11.0);
-  XCTAssertLessThanOrEqual(compactMetrics[@"carouselCellMetadataFontSize"].doubleValue, 13.0);
-  XCTAssertGreaterThanOrEqual(expandedMetrics[@"carouselCellMetadataFontSize"].doubleValue, 11.0);
-  XCTAssertLessThanOrEqual(expandedMetrics[@"carouselCellMetadataFontSize"].doubleValue, 13.0);
+  XCTAssertGreaterThanOrEqual(expandedMetrics[@"carouselCellTitleFontSize"].doubleValue,
+                              compactMetrics[@"carouselCellTitleFontSize"].doubleValue);
+  XCTAssertGreaterThanOrEqual(expandedMetrics[@"carouselCellMetadataFontSize"].doubleValue,
+                              compactMetrics[@"carouselCellMetadataFontSize"].doubleValue);
   XCTAssertGreaterThanOrEqual(expandedMetrics[@"carouselCellTitleFontSize"].doubleValue,
                               expandedMetrics[@"carouselCellMetadataFontSize"].doubleValue);
 }
 
-- (void)testPureScreenScalingShrinksMoreAggressivelyThanGuardedFluidScalingOnSmallViewport {
-  CGSize compactViewport = CGSizeMake(320.0, 568.0);
-  NSDictionary<NSString *, NSNumber *> *guardedMetrics =
-      [self adaptiveMetricsForLayoutScalingMode:MRRLayoutScalingModeGuardedFluidScaling windowSize:compactViewport];
-  NSDictionary<NSString *, NSNumber *> *pureMetrics =
-      [self adaptiveMetricsForLayoutScalingMode:MRRLayoutScalingModePureScreenScaling windowSize:compactViewport];
+- (void)testScalingOnlyUsesViewportRatiosOnSmallViewport {
+  NSDictionary<NSString *, NSNumber *> *baseMetrics = [self adaptiveMetricsForWindowSize:CGSizeMake(390.0, 844.0)];
+  NSDictionary<NSString *, NSNumber *> *compactMetrics = [self adaptiveMetricsForWindowSize:CGSizeMake(320.0, 568.0)];
 
-  XCTAssertLessThan(pureMetrics[@"titleFontSize"].doubleValue, guardedMetrics[@"titleFontSize"].doubleValue);
-  XCTAssertLessThan(pureMetrics[@"buttonHeight"].doubleValue, guardedMetrics[@"buttonHeight"].doubleValue);
-  XCTAssertLessThan(pureMetrics[@"carouselItemWidth"].doubleValue, guardedMetrics[@"carouselItemWidth"].doubleValue);
+  XCTAssertEqualWithAccuracy(compactMetrics[@"titleFontSize"].doubleValue / baseMetrics[@"titleFontSize"].doubleValue, 320.0 / 390.0,
+                             0.03);
+  XCTAssertEqualWithAccuracy(compactMetrics[@"horizontalInset"].doubleValue / baseMetrics[@"horizontalInset"].doubleValue,
+                             320.0 / 390.0, 0.03);
+  XCTAssertEqualWithAccuracy(compactMetrics[@"buttonHeight"].doubleValue / baseMetrics[@"buttonHeight"].doubleValue, 568.0 / 844.0,
+                             0.03);
+}
+
+- (void)testScalingOnlyExpandsMetricsProportionallyOnLargeViewport {
+  NSDictionary<NSString *, NSNumber *> *baseMetrics = [self adaptiveMetricsForWindowSize:CGSizeMake(390.0, 844.0)];
+  NSDictionary<NSString *, NSNumber *> *expandedMetrics = [self adaptiveMetricsForWindowSize:CGSizeMake(430.0, 932.0)];
+
+  XCTAssertEqualWithAccuracy(expandedMetrics[@"titleFontSize"].doubleValue / baseMetrics[@"titleFontSize"].doubleValue, 430.0 / 390.0,
+                             0.03);
+  XCTAssertGreaterThan(expandedMetrics[@"buttonHeight"].doubleValue, baseMetrics[@"buttonHeight"].doubleValue);
+  XCTAssertGreaterThan(expandedMetrics[@"carouselItemWidth"].doubleValue, baseMetrics[@"carouselItemWidth"].doubleValue);
+}
+
+- (void)testRecipeDetailMetricsScaleWithViewportSize {
+  NSDictionary<NSString *, NSNumber *> *compactMetrics = [self recipeDetailMetricsForWindowSize:CGSizeMake(320.0, 568.0)];
+  NSDictionary<NSString *, NSNumber *> *expandedMetrics = [self recipeDetailMetricsForWindowSize:CGSizeMake(430.0, 932.0)];
+
+  XCTAssertGreaterThan(expandedMetrics[@"startButtonHeight"].doubleValue, compactMetrics[@"startButtonHeight"].doubleValue);
+  XCTAssertGreaterThan(expandedMetrics[@"titleFontSize"].doubleValue, compactMetrics[@"titleFontSize"].doubleValue);
+  XCTAssertGreaterThan(expandedMetrics[@"closeButtonSize"].doubleValue, compactMetrics[@"closeButtonSize"].doubleValue);
 }
 
 - (UIView *)findViewWithAccessibilityIdentifier:(NSString *)identifier inView:(UIView *)view {
@@ -403,9 +486,30 @@
     @"horizontalInset" : @(CGRectGetMinX([self frameForAccessibilityIdentifier:@"onboarding.carouselCollectionView"])),
     @"stackSpacing" : @(self.viewController.contentStackView.spacing),
     @"carouselItemWidth" : @(layout.itemSize.width),
+    @"carouselItemHeight" : @(layout.itemSize.height),
     @"buttonHeight" : @(CGRectGetHeight([self frameForAccessibilityIdentifier:@"onboarding.emailButton"])),
     @"carouselCellTitleFontSize" : @([self visibleCarouselLabelFontSizeWithSuffix:@".titleLabel"]),
     @"carouselCellMetadataFontSize" : @([self visibleCarouselLabelFontSizeWithSuffix:@".metadataLabel"])
+  };
+}
+
+- (NSDictionary<NSString *, NSNumber *> *)currentRecipeDetailMetrics {
+  UIView *detailRootView = self.viewController.presentedViewController.view;
+  UILabel *titleLabel =
+      (UILabel *)[self findViewWithAccessibilityIdentifier:@"onboarding.recipeDetail.titleLabel" inView:detailRootView];
+  UIButton *startButton =
+      (UIButton *)[self findViewWithAccessibilityIdentifier:@"onboarding.recipeDetail.startCookingButton" inView:detailRootView];
+  UIButton *closeButton =
+      (UIButton *)[self findViewWithAccessibilityIdentifier:@"onboarding.recipeDetail.closeButton" inView:detailRootView];
+
+  XCTAssertNotNil(titleLabel);
+  XCTAssertNotNil(startButton);
+  XCTAssertNotNil(closeButton);
+
+  return @{
+    @"titleFontSize" : @(titleLabel.font.pointSize),
+    @"startButtonHeight" : @(CGRectGetHeight([startButton convertRect:startButton.bounds toView:detailRootView])),
+    @"closeButtonSize" : @(CGRectGetWidth([closeButton convertRect:closeButton.bounds toView:detailRootView])),
   };
 }
 
@@ -417,15 +521,6 @@
   }
 
   return ((UILabel *)labelView).font.pointSize;
-}
-
-- (void)assertAuthButtonsMeetMinimumTapTarget {
-  NSArray<NSString *> *buttonIdentifiers = @[ @"onboarding.emailButton", @"onboarding.googleButton", @"onboarding.appleButton" ];
-
-  for (NSString *identifier in buttonIdentifiers) {
-    CGRect frame = [self frameForAccessibilityIdentifier:identifier];
-    XCTAssertGreaterThanOrEqual(CGRectGetHeight(frame), 44.0, @"%@ should preserve a 44pt tap target", identifier);
-  }
 }
 
 - (void)assertPrimaryOnboardingContentFitsCurrentViewport {
@@ -445,14 +540,12 @@
   }
 }
 
-- (NSDictionary<NSString *, NSNumber *> *)adaptiveMetricsForLayoutScalingMode:(MRRLayoutScalingMode)layoutScalingMode
-                                                                  windowSize:(CGSize)size {
+- (NSDictionary<NSString *, NSNumber *> *)adaptiveMetricsForWindowSize:(CGSize)size {
   UIWindow *previousWindow = self.window;
   OnboardingViewController *previousViewController = self.viewController;
 
   UIWindow *window = [[UIWindow alloc] initWithFrame:CGRectMake(0.0, 0.0, size.width, size.height)];
-  OnboardingViewController *viewController = [[OnboardingViewController alloc] initWithStateController:self.stateController
-                                                                                      layoutScalingMode:layoutScalingMode];
+  OnboardingViewController *viewController = [[OnboardingViewController alloc] initWithStateController:self.stateController];
   viewController.delegate = self.delegateSpy;
   window.rootViewController = viewController;
   [window makeKeyAndVisible];
@@ -464,6 +557,36 @@
 
   NSDictionary<NSString *, NSNumber *> *metrics = [[self currentAdaptiveOnboardingMetrics] copy];
 
+  window.hidden = YES;
+  self.window = previousWindow;
+  self.viewController = previousViewController;
+
+  return metrics;
+}
+
+- (NSDictionary<NSString *, NSNumber *> *)recipeDetailMetricsForWindowSize:(CGSize)size {
+  UIWindow *previousWindow = self.window;
+  OnboardingViewController *previousViewController = self.viewController;
+
+  UIWindow *window = [[UIWindow alloc] initWithFrame:CGRectMake(0.0, 0.0, size.width, size.height)];
+  OnboardingViewController *viewController = [[OnboardingViewController alloc] initWithStateController:self.stateController];
+  viewController.delegate = self.delegateSpy;
+  window.rootViewController = viewController;
+  [window makeKeyAndVisible];
+
+  self.window = window;
+  self.viewController = viewController;
+  [self.viewController loadViewIfNeeded];
+  [self layoutOnboardingForWindowSize:size];
+  [self presentFirstRecipe];
+  [self.viewController.presentedViewController.view setNeedsLayout];
+  [self.viewController.presentedViewController.view layoutIfNeeded];
+  [self spinMainRunLoop];
+
+  NSDictionary<NSString *, NSNumber *> *metrics = [[self currentRecipeDetailMetrics] copy];
+
+  [self.viewController dismissViewControllerAnimated:NO completion:nil];
+  [self spinMainRunLoop];
   window.hidden = YES;
   self.window = previousWindow;
   self.viewController = previousViewController;
