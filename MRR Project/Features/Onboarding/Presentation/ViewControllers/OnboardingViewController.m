@@ -80,6 +80,8 @@ static UIColor *MRRNamedColor(NSString *name, UIColor *lightColor, UIColor *dark
 @property(nonatomic, retain) NSLayoutConstraint *benefitBodyHeightConstraint;
 @property(nonatomic, assign) NSInteger currentRecipeIndex;
 @property(nonatomic, assign) NSInteger currentCarouselItemIndex;
+@property(nonatomic, assign) BOOL hasAppliedInitialCarouselPosition;
+@property(nonatomic, assign) CGSize lastPositionedCarouselBoundsSize;
 @property(nonatomic, assign, getter=isDetailPresented) BOOL detailPresented;
 @property(nonatomic, assign, getter=isViewVisible) BOOL viewVisible;
 
@@ -117,6 +119,7 @@ static UIColor *MRRNamedColor(NSString *name, UIColor *lightColor, UIColor *dark
 - (NSInteger)carouselItemIndexForRecipeIndex:(NSInteger)recipeIndex nearCarouselItemIndex:(NSInteger)referenceIndex;
 - (NSInteger)nearestCarouselItemIndexForOffsetX:(CGFloat)offsetX;
 - (CGFloat)contentOffsetXForCarouselItemIndex:(NSInteger)itemIndex;
+- (void)ensureInitialCarouselPositionIfNeeded;
 - (void)scrollToCarouselItemAtIndex:(NSInteger)itemIndex animated:(BOOL)animated;
 - (void)scrollToRecipeAtIndex:(NSInteger)index animated:(BOOL)animated;
 - (void)updatePageControl;
@@ -233,6 +236,7 @@ static UIColor *MRRNamedColor(NSString *name, UIColor *lightColor, UIColor *dark
   [self updateLayoutMetricsIfNeeded];
   [self.view layoutIfNeeded];
   [self updateCarouselLayoutIfNeeded];
+  [self ensureInitialCarouselPositionIfNeeded];
   [self updateScrollBehaviorIfNeeded];
 }
 
@@ -1017,6 +1021,37 @@ static UIColor *MRRNamedColor(NSString *name, UIColor *lightColor, UIColor *dark
   return CGSizeMake(desiredWidth, desiredHeight);
 }
 
+- (void)ensureInitialCarouselPositionIfNeeded {
+  if (self.recipes.count == 0 || self.carouselCollectionView == nil) {
+    return;
+  }
+
+  CGSize carouselBoundsSize = self.carouselCollectionView.bounds.size;
+  if (carouselBoundsSize.width <= 0.0 || carouselBoundsSize.height <= 0.0) {
+    return;
+  }
+
+  BOOL boundsChangedSinceLastPositioning =
+      fabs(self.lastPositionedCarouselBoundsSize.width - carouselBoundsSize.width) >= 0.5 ||
+      fabs(self.lastPositionedCarouselBoundsSize.height - carouselBoundsSize.height) >= 0.5;
+  if (self.hasAppliedInitialCarouselPosition && !boundsChangedSinceLastPositioning) {
+    return;
+  }
+
+  NSInteger initialItemIndex = self.currentCarouselItemIndex;
+  if (initialItemIndex < 0 || initialItemIndex >= [self virtualCarouselItemCount]) {
+    initialItemIndex = [self middleCarouselItemIndexForRecipeIndex:self.currentRecipeIndex];
+    if (initialItemIndex == NSNotFound) {
+      return;
+    }
+  }
+
+  [self scrollToCarouselItemAtIndex:initialItemIndex animated:NO];
+  self.hasAppliedInitialCarouselPosition = YES;
+  self.lastPositionedCarouselBoundsSize = carouselBoundsSize;
+  [self resumeCarouselAutoscrollIfPossible];
+}
+
 - (void)scrollToCarouselItemAtIndex:(NSInteger)itemIndex animated:(BOOL)animated {
   NSInteger totalItemCount = [self virtualCarouselItemCount];
   if (itemIndex < 0 || itemIndex >= totalItemCount) {
@@ -1092,8 +1127,8 @@ static UIColor *MRRNamedColor(NSString *name, UIColor *lightColor, UIColor *dark
 }
 
 - (void)resumeCarouselAutoscrollIfPossible {
-  if (!self.isViewVisible || self.isDetailPresented || self.carouselTimer != nil || self.recipes.count < 2 || self.carouselCollectionView.dragging ||
-      self.carouselCollectionView.decelerating) {
+  if (!self.isViewVisible || !self.hasAppliedInitialCarouselPosition || self.isDetailPresented || self.carouselTimer != nil ||
+      self.recipes.count < 2 || self.carouselCollectionView.dragging || self.carouselCollectionView.decelerating) {
     return;
   }
 

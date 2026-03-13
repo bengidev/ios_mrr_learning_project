@@ -136,6 +136,19 @@
   XCTAssertEqualWithAccuracy([self.viewController contentOffsetXForCarouselItemIndex:targetIndex], expectedOffset, 0.5);
 }
 
+- (void)testInitialLayoutCentersCarouselOnMiddleLoopCopy {
+  [self layoutOnboardingForWindowSize:CGSizeMake(390.0, 844.0)];
+  [self.viewController.carouselCollectionView layoutIfNeeded];
+  [self spinMainRunLoop];
+
+  NSInteger expectedItemIndex = [self.viewController middleCarouselItemIndexForRecipeIndex:0];
+  CGFloat expectedOffset = [self.viewController contentOffsetXForCarouselItemIndex:expectedItemIndex];
+
+  XCTAssertEqual(self.viewController.currentCarouselItemIndex, expectedItemIndex);
+  XCTAssertGreaterThan(expectedOffset, 0.0);
+  XCTAssertEqualWithAccuracy(self.viewController.carouselCollectionView.contentOffset.x, expectedOffset, 0.5);
+}
+
 - (void)testRecenterMovesBoundaryCopyBackToMiddleLoopForSameRecipe {
   [self layoutOnboardingForWindowSize:CGSizeMake(430.0, 932.0)];
   [self.viewController.carouselCollectionView layoutIfNeeded];
