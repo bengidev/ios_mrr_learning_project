@@ -1,25 +1,35 @@
 # iOS MRR Learning Project
 
-An Objective-C iOS project for studying Manual Retain-Release (MRR) with a minimal first-launch flow.
+An Objective-C iOS project for studying Manual Retain-Release (MRR) with a polished first-launch onboarding flow.
 
 ## Current Flow
 
 - First launch: show `OnboardingViewController`
-- After onboarding is completed: persist a flag in `NSUserDefaults`
+- Onboarding displays the `Culina` brand header, app icon, looping recipe carousel, and auth CTA placeholders
+- Tapping a carousel card presents `OnboardingRecipeDetailViewController`
+- Tapping `Start Cooking` in the detail modal completes onboarding and persists a flag in `NSUserDefaults`
 - Next launches: show `MainMenuViewController`
 
-Both screens are intentionally simple placeholders for now.
+The onboarding screen is no longer a static placeholder. It now carries the active first-run product experience.
 
 ## Project Structure
 
 - `MRR Project/App`
-  Root app wiring, `AppDelegate`, `main.m`, and the simple `MainMenuViewController`
+  Root app wiring, `AppDelegate`, `main.m`, and `MainMenuViewController`
 - `MRR Project/Resources`
   Shared application resources, including `Info.plist` and `Assets.xcassets`
 - `MRR Project/Features/Onboarding`
-  First-launch state persistence and onboarding UI
+  First-launch state persistence, onboarding layout, carousel cells, and recipe detail presentation
 - `MRR ProjectTests`
-  Launch-flow tests for onboarding and persisted state behavior
+  Launch-flow tests plus onboarding layout and interaction regressions
+
+## Onboarding Highlights
+
+- Programmatic onboarding layout with dynamic sizing across common iPhone viewports
+- Looping carousel with guarded initial centering to prevent launch-time jump behavior
+- Shared backdrop styling with a fade mask so carousel text areas blend into recipe imagery
+- Light and dark appearance support through named colors in `Assets.xcassets`
+- Stable accessibility identifiers for root onboarding UI, carousel cells, and recipe detail content
 
 ## Requirements
 
@@ -34,12 +44,15 @@ Both screens are intentionally simple placeholders for now.
 
 ## Tests
 
-The active unit-test coverage focuses on the root flow:
+The active unit-test coverage focuses on both root flow and onboarding presentation details:
 
 - first launch shows onboarding
 - finishing onboarding persists the completion flag
 - returning users go directly to the main menu
 - the app no longer routes into a tab-bar-based learning flow
+- carousel centering, recentering, and auto-scroll behavior
+- recipe detail presentation and `Start Cooking` completion flow
+- onboarding accessibility identifiers and carousel backdrop styling
 
 ## VSCode Save Behavior
 
@@ -49,7 +62,7 @@ The active unit-test coverage focuses on the root flow:
 
 ## Assets
 
-- `MRR Project/Resources/Assets.xcassets` is the active asset catalog for the app icon, named colors, and the onboarding illustration.
+- `MRR Project/Resources/Assets.xcassets` is the active asset catalog for the app icon, named colors, onboarding recipe imagery, and the onboarding brand icon.
 - `swift scripts/generate-assets.swift` regenerates the current placeholder assets if they need to be refreshed.
 
 ## Notes
@@ -57,3 +70,4 @@ The active unit-test coverage focuses on the root flow:
 - The app target intentionally keeps `CLANG_ENABLE_OBJC_ARC = NO`.
 - The test target may use ARC-backed XCTest conveniences.
 - UI is programmatic; there are no storyboards or xibs.
+- Repo-specific agent guidance lives in `AGENTS.md`.

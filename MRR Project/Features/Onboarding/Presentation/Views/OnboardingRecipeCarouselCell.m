@@ -25,6 +25,19 @@ static UIColor *MRRNamedColor(NSString *name, UIColor *lightColor, UIColor *dark
   return namedColor ?: MRRDynamicFallbackColor(lightColor, darkColor);
 }
 
+static UIColor *MRRPrimaryTextColor(void) {
+  return MRRNamedColor(@"TextPrimaryColor", [UIColor colorWithWhite:0.10 alpha:1.0], [UIColor colorWithWhite:0.96 alpha:1.0]);
+}
+
+static UIColor *MRRSecondaryTextColor(void) {
+  return MRRNamedColor(@"TextSecondaryColor", [UIColor colorWithWhite:0.42 alpha:1.0], [UIColor colorWithWhite:0.63 alpha:1.0]);
+}
+
+static UIColor *MRRHighlightedTextBackdropColor(void) {
+  return [MRRNamedColor(@"CardSurfaceColor", [UIColor colorWithWhite:0.99 alpha:1.0], [UIColor colorWithWhite:0.16 alpha:1.0])
+      colorWithAlphaComponent:0.5];
+}
+
 static CGFloat const MRRPureCarouselCardBaseWidth = 176.0;
 static CGFloat const MRRPureCarouselCardBaseHeight = 196.0;
 
@@ -32,9 +45,11 @@ static CGFloat const MRRPureCarouselCardBaseHeight = 196.0;
 
 @property(nonatomic, retain) UIView *cardView;
 @property(nonatomic, retain) UIImageView *imageView;
+@property(nonatomic, retain) UIView *textBackdropView;
 @property(nonatomic, retain) UILabel *titleLabel;
 @property(nonatomic, retain) UILabel *metadataLabel;
 @property(nonatomic, retain) UILabel *hintLabel;
+@property(nonatomic, retain) NSLayoutConstraint *textBackdropTopConstraint;
 @property(nonatomic, retain) NSLayoutConstraint *titleLeadingConstraint;
 @property(nonatomic, retain) NSLayoutConstraint *titleTrailingConstraint;
 @property(nonatomic, retain) NSLayoutConstraint *titleBottomConstraint;
@@ -56,9 +71,9 @@ static CGFloat const MRRPureCarouselCardBaseHeight = 196.0;
     self.backgroundColor = [UIColor clearColor];
     self.contentView.backgroundColor = [UIColor clearColor];
     self.layer.shadowColor = [UIColor blackColor].CGColor;
-    self.layer.shadowOpacity = 0.16f;
-    self.layer.shadowRadius = 22.0f;
-    self.layer.shadowOffset = CGSizeMake(0.0, 12.0);
+    self.layer.shadowOpacity = 0.0f;
+    self.layer.shadowRadius = 0.0f;
+    self.layer.shadowOffset = CGSizeZero;
     self.layer.masksToBounds = NO;
 
     [self buildViewHierarchy];
@@ -71,12 +86,14 @@ static CGFloat const MRRPureCarouselCardBaseHeight = 196.0;
   [_metadataBottomConstraint release];
   [_metadataTrailingConstraint release];
   [_metadataLeadingConstraint release];
+  [_textBackdropTopConstraint release];
   [_titleBottomConstraint release];
   [_titleTrailingConstraint release];
   [_titleLeadingConstraint release];
   [_hintLabel release];
   [_metadataLabel release];
   [_titleLabel release];
+  [_textBackdropView release];
   [_imageView release];
   [_cardView release];
   [super dealloc];
@@ -84,6 +101,17 @@ static CGFloat const MRRPureCarouselCardBaseHeight = 196.0;
 
 - (void)layoutSubviews {
   [super layoutSubviews];
+  [self.contentView layoutIfNeeded];
+  [self.cardView layoutIfNeeded];
+  [self.textBackdropView layoutIfNeeded];
+
+  CALayer *textBackdropMaskLayer = self.textBackdropView.layer.mask;
+  if (textBackdropMaskLayer != nil) {
+    [CATransaction begin];
+    [CATransaction setDisableActions:YES];
+    textBackdropMaskLayer.frame = self.textBackdropView.bounds;
+    [CATransaction commit];
+  }
 
   [self updateAdaptiveMetricsForCardSize:self.contentView.bounds.size];
 }
@@ -95,6 +123,11 @@ static CGFloat const MRRPureCarouselCardBaseHeight = 196.0;
   self.titleLabel.text = nil;
   self.metadataLabel.text = nil;
   self.hintLabel.hidden = YES;
+  self.accessibilityIdentifier = nil;
+  self.contentView.accessibilityIdentifier = nil;
+  self.cardView.accessibilityIdentifier = nil;
+  self.imageView.accessibilityIdentifier = nil;
+  self.textBackdropView.accessibilityIdentifier = nil;
   self.titleLabel.accessibilityIdentifier = nil;
   self.metadataLabel.accessibilityIdentifier = nil;
   self.hintLabel.accessibilityIdentifier = nil;
@@ -108,22 +141,23 @@ static CGFloat const MRRPureCarouselCardBaseHeight = 196.0;
   self.metadataLabel.text = [NSString stringWithFormat:@"◷ %@   🔥 %@", recipe.durationText, compactCalorieText];
   self.hintLabel.text = nil;
   self.hintLabel.hidden = YES;
+  self.textBackdropView.backgroundColor = MRRHighlightedTextBackdropColor();
   [self applyAccessibilityIdentifiersForRecipe:recipe];
 }
 
 #pragma mark - View Setup
 
 - (void)buildViewHierarchy {
-  self.layer.shadowOpacity = 0.25f;
-  self.layer.shadowRadius = 20.0f;
-  self.layer.shadowOffset = CGSizeMake(0.0, 12.0);
+  self.layer.shadowOpacity = 0.0f;
+  self.layer.shadowRadius = 0.0f;
+  self.layer.shadowOffset = CGSizeZero;
 
   UIView *cardView = [[[UIView alloc] init] autorelease];
   cardView.translatesAutoresizingMaskIntoConstraints = NO;
   cardView.layer.cornerRadius = 20.0;
   cardView.clipsToBounds = YES;
   cardView.layer.borderWidth = 1.2;
-  cardView.layer.borderColor = [[UIColor colorWithWhite:1.0 alpha:0.16] CGColor];
+  cardView.layer.borderColor = [[MRRPrimaryTextColor() colorWithAlphaComponent:0.14] CGColor];
   cardView.backgroundColor = MRRNamedColor(@"CardSurfaceColor", [UIColor whiteColor], [UIColor colorWithWhite:0.16 alpha:1.0]);
   [self.contentView addSubview:cardView];
   self.cardView = cardView;
@@ -135,27 +169,41 @@ static CGFloat const MRRPureCarouselCardBaseHeight = 196.0;
   [cardView addSubview:imageView];
   self.imageView = imageView;
 
-  UIView *bottomOverlayView = [[[UIView alloc] init] autorelease];
-  bottomOverlayView.translatesAutoresizingMaskIntoConstraints = NO;
-  bottomOverlayView.backgroundColor = [[UIColor blackColor] colorWithAlphaComponent:0.30];
-  [cardView addSubview:bottomOverlayView];
+  UIView *textBackdropView = [[[UIView alloc] init] autorelease];
+  textBackdropView.translatesAutoresizingMaskIntoConstraints = NO;
+  textBackdropView.backgroundColor = MRRHighlightedTextBackdropColor();
+  textBackdropView.userInteractionEnabled = NO;
+  CAGradientLayer *textBackdropMaskLayer = [CAGradientLayer layer];
+  textBackdropMaskLayer.startPoint = CGPointMake(0.5, 0.0);
+  textBackdropMaskLayer.endPoint = CGPointMake(0.5, 1.0);
+  textBackdropMaskLayer.colors = @[
+    (id)[UIColor colorWithWhite:1.0 alpha:0.0].CGColor,
+    (id)[UIColor colorWithWhite:1.0 alpha:0.78].CGColor,
+    (id)[UIColor colorWithWhite:1.0 alpha:1.0].CGColor,
+    (id)[UIColor colorWithWhite:1.0 alpha:1.0].CGColor
+  ];
+  textBackdropMaskLayer.locations = @[ @0.0, @0.16, @0.28, @1.0 ];
+  textBackdropMaskLayer.frame = textBackdropView.bounds;
+  textBackdropView.layer.mask = textBackdropMaskLayer;
+  [cardView addSubview:textBackdropView];
+  self.textBackdropView = textBackdropView;
 
   UILabel *titleLabel = [[[UILabel alloc] init] autorelease];
   titleLabel.translatesAutoresizingMaskIntoConstraints = NO;
   titleLabel.font = [UIFont boldSystemFontOfSize:20.0];
-  titleLabel.textColor = [UIColor whiteColor];
+  titleLabel.textColor = [MRRPrimaryTextColor() colorWithAlphaComponent:0.98];
   titleLabel.numberOfLines = 2;
-  titleLabel.shadowColor = [[UIColor blackColor] colorWithAlphaComponent:0.70];
-  titleLabel.shadowOffset = CGSizeMake(0.0, 1.0);
+  titleLabel.shadowColor = [UIColor clearColor];
+  titleLabel.shadowOffset = CGSizeZero;
   [cardView addSubview:titleLabel];
   self.titleLabel = titleLabel;
 
   UILabel *metadataLabel = [[[UILabel alloc] init] autorelease];
   metadataLabel.translatesAutoresizingMaskIntoConstraints = NO;
   metadataLabel.font = [UIFont systemFontOfSize:13.0 weight:UIFontWeightMedium];
-  metadataLabel.textColor = [[UIColor whiteColor] colorWithAlphaComponent:0.88];
-  metadataLabel.shadowColor = [[UIColor blackColor] colorWithAlphaComponent:0.60];
-  metadataLabel.shadowOffset = CGSizeMake(0.0, 1.0);
+  metadataLabel.textColor = [MRRSecondaryTextColor() colorWithAlphaComponent:0.98];
+  metadataLabel.shadowColor = [UIColor clearColor];
+  metadataLabel.shadowOffset = CGSizeZero;
   metadataLabel.adjustsFontSizeToFitWidth = YES;
   metadataLabel.minimumScaleFactor = 0.84;
   [cardView addSubview:metadataLabel];
@@ -173,6 +221,7 @@ static CGFloat const MRRPureCarouselCardBaseHeight = 196.0;
   self.titleLeadingConstraint = [titleLabel.leadingAnchor constraintEqualToAnchor:cardView.leadingAnchor constant:14.0];
   self.titleTrailingConstraint = [titleLabel.trailingAnchor constraintEqualToAnchor:cardView.trailingAnchor constant:-14.0];
   self.titleBottomConstraint = [titleLabel.bottomAnchor constraintEqualToAnchor:metadataLabel.topAnchor constant:-6.0];
+  self.textBackdropTopConstraint = [textBackdropView.topAnchor constraintEqualToAnchor:titleLabel.topAnchor constant:-12.0];
 
   [NSLayoutConstraint activateConstraints:@[
     [cardView.topAnchor constraintEqualToAnchor:self.contentView.topAnchor],
@@ -185,10 +234,10 @@ static CGFloat const MRRPureCarouselCardBaseHeight = 196.0;
     [imageView.trailingAnchor constraintEqualToAnchor:cardView.trailingAnchor],
     [imageView.bottomAnchor constraintEqualToAnchor:cardView.bottomAnchor],
 
-    [bottomOverlayView.leadingAnchor constraintEqualToAnchor:cardView.leadingAnchor],
-    [bottomOverlayView.trailingAnchor constraintEqualToAnchor:cardView.trailingAnchor],
-    [bottomOverlayView.bottomAnchor constraintEqualToAnchor:cardView.bottomAnchor],
-    [bottomOverlayView.heightAnchor constraintEqualToAnchor:cardView.heightAnchor multiplier:0.30],
+    [textBackdropView.leadingAnchor constraintEqualToAnchor:cardView.leadingAnchor],
+    [textBackdropView.trailingAnchor constraintEqualToAnchor:cardView.trailingAnchor],
+    [textBackdropView.bottomAnchor constraintEqualToAnchor:cardView.bottomAnchor],
+    self.textBackdropTopConstraint,
 
     self.metadataLeadingConstraint,
     self.metadataTrailingConstraint,
@@ -202,6 +251,11 @@ static CGFloat const MRRPureCarouselCardBaseHeight = 196.0;
 
 - (void)applyAccessibilityIdentifiersForRecipe:(OnboardingRecipe *)recipe {
   NSString *identifierPrefix = [NSString stringWithFormat:@"onboarding.carouselCell.%@", recipe.assetName];
+  self.accessibilityIdentifier = identifierPrefix;
+  self.contentView.accessibilityIdentifier = [identifierPrefix stringByAppendingString:@".contentView"];
+  self.cardView.accessibilityIdentifier = [identifierPrefix stringByAppendingString:@".cardView"];
+  self.imageView.accessibilityIdentifier = [identifierPrefix stringByAppendingString:@".imageView"];
+  self.textBackdropView.accessibilityIdentifier = [identifierPrefix stringByAppendingString:@".textBackdropView"];
   self.titleLabel.accessibilityIdentifier = [identifierPrefix stringByAppendingString:@".titleLabel"];
   self.metadataLabel.accessibilityIdentifier = [identifierPrefix stringByAppendingString:@".metadataLabel"];
   self.hintLabel.accessibilityIdentifier = [identifierPrefix stringByAppendingString:@".hintLabel"];
@@ -217,12 +271,10 @@ static CGFloat const MRRPureCarouselCardBaseHeight = 196.0;
   CGFloat horizontalPadding = 0.0;
   CGFloat bottomPadding = 0.0;
   CGFloat titleSpacing = 0.0;
+  CGFloat backdropTopPadding = 0.0;
   CGFloat cornerRadius = 0.0;
   CGFloat titleFontSize = 0.0;
   CGFloat metadataFontSize = 0.0;
-  CGFloat shadowRadius = 0.0;
-  CGFloat shadowOffsetY = 0.0;
-
   CGFloat widthScaleFactor = cardWidth / MRRPureCarouselCardBaseWidth;
   CGFloat heightScaleFactor = cardHeight / MRRPureCarouselCardBaseHeight;
   CGFloat minDimensionScaleFactor = MIN(widthScaleFactor, heightScaleFactor);
@@ -230,13 +282,13 @@ static CGFloat const MRRPureCarouselCardBaseHeight = 196.0;
   horizontalPadding = MRRLayoutRoundedMetric(14.0 * widthScaleFactor);
   bottomPadding = MRRLayoutRoundedMetric(14.0 * heightScaleFactor);
   titleSpacing = MRRLayoutRoundedMetric(5.0 * heightScaleFactor);
+  backdropTopPadding = MRRLayoutRoundedMetric(12.0 * heightScaleFactor);
   cornerRadius = MRRLayoutRoundedMetric(20.0 * minDimensionScaleFactor);
   titleFontSize = MRRLayoutRoundedMetric(19.0 * widthScaleFactor);
   metadataFontSize = MRRLayoutRoundedMetric(12.5 * widthScaleFactor);
-  shadowRadius = MRRLayoutRoundedMetric(18.0 * heightScaleFactor);
-  shadowOffsetY = MRRLayoutRoundedMetric(10.0 * heightScaleFactor);
 
   self.cardView.layer.cornerRadius = cornerRadius;
+  self.textBackdropTopConstraint.constant = -backdropTopPadding;
   self.titleLeadingConstraint.constant = horizontalPadding;
   self.titleTrailingConstraint.constant = -horizontalPadding;
   self.titleBottomConstraint.constant = -titleSpacing;
@@ -247,9 +299,7 @@ static CGFloat const MRRPureCarouselCardBaseHeight = 196.0;
   self.metadataLabel.font = [UIFont systemFontOfSize:metadataFontSize weight:UIFontWeightMedium];
   self.titleLabel.preferredMaxLayoutWidth = MAX(cardWidth - (horizontalPadding * 2.0), 0.0);
   self.metadataLabel.preferredMaxLayoutWidth = MAX(cardWidth - (horizontalPadding * 2.0), 0.0);
-  self.layer.shadowRadius = shadowRadius;
-  self.layer.shadowOffset = CGSizeMake(0.0, shadowOffsetY);
-  self.layer.shadowPath = [UIBezierPath bezierPathWithRoundedRect:self.bounds cornerRadius:cornerRadius].CGPath;
+  self.layer.shadowPath = nil;
 }
 
 @end

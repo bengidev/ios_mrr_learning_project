@@ -16,6 +16,7 @@
 - (void)recenterCarouselIfNeeded;
 - (void)handleCarouselTimer:(NSTimer *)timer;
 - (void)scrollViewWillEndDragging:(UIScrollView *)scrollView withVelocity:(CGPoint)velocity targetContentOffset:(inout CGPoint *)targetContentOffset;
+- (void)scrollToRecipeAtIndex:(NSInteger)index animated:(BOOL)animated;
 
 @end
 
@@ -224,6 +225,160 @@
   OnboardingRecipe *firstRecipe = [self.stateController onboardingRecipes].firstObject;
   NSString *carouselTitleIdentifier = [NSString stringWithFormat:@"onboarding.carouselCell.%@.titleLabel", firstRecipe.assetName];
   XCTAssertNotNil([self findViewWithAccessibilityIdentifier:carouselTitleIdentifier inView:self.viewController.view]);
+}
+
+- (void)testOnboardingExposesDebugAccessibilityIdentifiers {
+  NSArray<NSString *> *identifiers = @[
+    @"onboarding.scrollView",
+    @"onboarding.contentView",
+    @"onboarding.contentStackView",
+    @"onboarding.logoWrapperView",
+    @"onboarding.logoContainerView",
+    @"onboarding.spacerView",
+    @"onboarding.emailButton.contentWrapper",
+    @"onboarding.emailButton.iconLabel",
+    @"onboarding.emailButton.titleLabel",
+    @"onboarding.googleButton.contentWrapper",
+    @"onboarding.googleButton.iconLabel",
+    @"onboarding.googleButton.titleLabel",
+    @"onboarding.appleButton.contentWrapper",
+    @"onboarding.appleButton.iconLabel",
+    @"onboarding.appleButton.titleLabel",
+    @"onboarding.authDividerView",
+    @"onboarding.authDividerView.leftLine",
+    @"onboarding.authDividerView.rightLine",
+    @"onboarding.authDividerView.label"
+  ];
+
+  for (NSString *identifier in identifiers) {
+    XCTAssertNotNil([self findViewWithAccessibilityIdentifier:identifier inView:self.viewController.view], @"Missing %@", identifier);
+  }
+
+  OnboardingRecipe *firstRecipe = [self.stateController onboardingRecipes].firstObject;
+  NSArray<NSString *> *carouselIdentifiers = @[
+    [NSString stringWithFormat:@"onboarding.carouselCell.%@", firstRecipe.assetName],
+    [NSString stringWithFormat:@"onboarding.carouselCell.%@.contentView", firstRecipe.assetName],
+    [NSString stringWithFormat:@"onboarding.carouselCell.%@.cardView", firstRecipe.assetName],
+    [NSString stringWithFormat:@"onboarding.carouselCell.%@.imageView", firstRecipe.assetName],
+    [NSString stringWithFormat:@"onboarding.carouselCell.%@.textBackdropView", firstRecipe.assetName]
+  ];
+
+  for (NSString *identifier in carouselIdentifiers) {
+    XCTAssertNotNil([self findViewWithAccessibilityIdentifier:identifier inView:self.viewController.view], @"Missing %@", identifier);
+  }
+}
+
+- (void)testCarouselBackdropExpandsToContainWrappedBeefBourguignonText {
+  [self layoutOnboardingForWindowSize:CGSizeMake(390.0, 844.0)];
+
+  NSArray<OnboardingRecipe *> *recipes = [self.stateController onboardingRecipes];
+  NSUInteger beefRecipeIndex =
+      [recipes indexOfObjectPassingTest:^BOOL(OnboardingRecipe *recipe, NSUInteger idx, BOOL *stop) {
+        return [recipe.assetName isEqualToString:@"beef-bourguignon"];
+      }];
+  XCTAssertNotEqual(beefRecipeIndex, NSNotFound);
+
+  [self.viewController scrollToRecipeAtIndex:(NSInteger)beefRecipeIndex animated:NO];
+  [self.viewController.carouselCollectionView layoutIfNeeded];
+  [self.viewController.view layoutIfNeeded];
+  [self spinMainRunLoop];
+
+  NSString *identifierPrefix = [NSString stringWithFormat:@"onboarding.carouselCell.%@", recipes[beefRecipeIndex].assetName];
+  UIView *backdropView =
+      [self findViewWithAccessibilityIdentifier:[identifierPrefix stringByAppendingString:@".textBackdropView"] inView:self.viewController.view];
+  UILabel *titleLabel =
+      (UILabel *)[self findViewWithAccessibilityIdentifier:[identifierPrefix stringByAppendingString:@".titleLabel"]
+                                                    inView:self.viewController.view];
+  UILabel *metadataLabel =
+      (UILabel *)[self findViewWithAccessibilityIdentifier:[identifierPrefix stringByAppendingString:@".metadataLabel"]
+                                                    inView:self.viewController.view];
+
+  XCTAssertNotNil(backdropView);
+  XCTAssertNotNil(titleLabel);
+  XCTAssertNotNil(metadataLabel);
+
+  CGRect backdropFrame = [backdropView convertRect:backdropView.bounds toView:self.viewController.view];
+  CGRect titleFrame = [titleLabel convertRect:titleLabel.bounds toView:self.viewController.view];
+  CGRect metadataFrame = [metadataLabel convertRect:metadataLabel.bounds toView:self.viewController.view];
+
+  XCTAssertLessThanOrEqual(CGRectGetMinY(backdropFrame), CGRectGetMinY(titleFrame) + 0.5);
+  XCTAssertGreaterThanOrEqual(CGRectGetMaxY(backdropFrame), CGRectGetMaxY(metadataFrame) - 0.5);
+}
+
+- (void)testCarouselCardsShareSameBackdropColor {
+  [self layoutOnboardingForWindowSize:CGSizeMake(390.0, 844.0)];
+
+  NSArray<OnboardingRecipe *> *recipes = [self.stateController onboardingRecipes];
+  OnboardingRecipe *defaultRecipe = recipes.firstObject;
+  NSUInteger beefRecipeIndex =
+      [recipes indexOfObjectPassingTest:^BOOL(OnboardingRecipe *recipe, NSUInteger idx, BOOL *stop) {
+        return [recipe.assetName isEqualToString:@"beef-bourguignon"];
+      }];
+  XCTAssertNotNil(defaultRecipe);
+  XCTAssertNotEqual(beefRecipeIndex, NSNotFound);
+
+  NSString *defaultIdentifier =
+      [NSString stringWithFormat:@"onboarding.carouselCell.%@.textBackdropView", defaultRecipe.assetName];
+  UIView *defaultBackdropView = [self findViewWithAccessibilityIdentifier:defaultIdentifier inView:self.viewController.view];
+  XCTAssertNotNil(defaultBackdropView);
+
+  UIColor *defaultColor = defaultBackdropView.backgroundColor;
+  if (@available(iOS 13.0, *)) {
+    defaultColor = [defaultColor resolvedColorWithTraitCollection:defaultBackdropView.traitCollection];
+  }
+
+  [self.viewController scrollToRecipeAtIndex:(NSInteger)beefRecipeIndex animated:NO];
+  [self.viewController.carouselCollectionView layoutIfNeeded];
+  [self.viewController.view layoutIfNeeded];
+  [self spinMainRunLoop];
+
+  NSString *beefIdentifier =
+      [NSString stringWithFormat:@"onboarding.carouselCell.%@.textBackdropView", recipes[beefRecipeIndex].assetName];
+  UIView *beefBackdropView = [self findViewWithAccessibilityIdentifier:beefIdentifier inView:self.viewController.view];
+  XCTAssertNotNil(beefBackdropView);
+
+  UIColor *beefColor = beefBackdropView.backgroundColor;
+  if (@available(iOS 13.0, *)) {
+    beefColor = [beefColor resolvedColorWithTraitCollection:beefBackdropView.traitCollection];
+  }
+
+  CGFloat defaultRed = 0.0;
+  CGFloat defaultGreen = 0.0;
+  CGFloat defaultBlue = 0.0;
+  CGFloat defaultAlpha = 0.0;
+  CGFloat beefRed = 0.0;
+  CGFloat beefGreen = 0.0;
+  CGFloat beefBlue = 0.0;
+  CGFloat beefAlpha = 0.0;
+
+  XCTAssertTrue([defaultColor getRed:&defaultRed green:&defaultGreen blue:&defaultBlue alpha:&defaultAlpha]);
+  XCTAssertTrue([beefColor getRed:&beefRed green:&beefGreen blue:&beefBlue alpha:&beefAlpha]);
+
+  CGFloat defaultBrightness = (0.2126 * defaultRed) + (0.7152 * defaultGreen) + (0.0722 * defaultBlue);
+  CGFloat beefBrightness = (0.2126 * beefRed) + (0.7152 * beefGreen) + (0.0722 * beefBlue);
+
+  XCTAssertEqualWithAccuracy(beefBrightness, defaultBrightness, 0.001);
+  XCTAssertEqualWithAccuracy(beefAlpha, defaultAlpha, 0.001);
+}
+
+- (void)testCarouselBackdropUsesFadeMaskToSoftenTopEdge {
+  [self layoutOnboardingForWindowSize:CGSizeMake(390.0, 844.0)];
+
+  OnboardingRecipe *firstRecipe = [self.stateController onboardingRecipes].firstObject;
+  NSString *backdropIdentifier =
+      [NSString stringWithFormat:@"onboarding.carouselCell.%@.textBackdropView", firstRecipe.assetName];
+  UIView *backdropView = [self findViewWithAccessibilityIdentifier:backdropIdentifier inView:self.viewController.view];
+
+  XCTAssertNotNil(backdropView);
+  XCTAssertTrue([backdropView.layer.mask isKindOfClass:[CAGradientLayer class]]);
+
+  CAGradientLayer *maskLayer = (CAGradientLayer *)backdropView.layer.mask;
+  XCTAssertEqual(maskLayer.colors.count, (NSUInteger)4);
+  XCTAssertEqual(maskLayer.locations.count, (NSUInteger)4);
+  XCTAssertEqualWithAccuracy(maskLayer.startPoint.y, 0.0, 0.001);
+  XCTAssertEqualWithAccuracy(maskLayer.endPoint.y, 1.0, 0.001);
+  XCTAssertEqualWithAccuracy(maskLayer.locations[0].doubleValue, 0.0, 0.001);
+  XCTAssertEqualWithAccuracy(maskLayer.locations[1].doubleValue, 0.16, 0.001);
 }
 
 - (void)testOnboardingLogoViewLoadsBrandAsset {

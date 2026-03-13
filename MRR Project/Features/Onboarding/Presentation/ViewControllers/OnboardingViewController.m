@@ -32,6 +32,22 @@ static UIColor *MRRNamedColor(NSString *name, UIColor *lightColor, UIColor *dark
   return namedColor ?: MRRDynamicFallbackColor(lightColor, darkColor);
 }
 
+static UIColor *MRRBackgroundSurfaceColor(void) {
+  return MRRNamedColor(@"BackgroundColor", [UIColor colorWithWhite:0.98 alpha:1.0], [UIColor colorWithWhite:0.10 alpha:1.0]);
+}
+
+static UIColor *MRRCardSurfaceColor(void) {
+  return MRRNamedColor(@"CardSurfaceColor", [UIColor colorWithWhite:0.99 alpha:1.0], [UIColor colorWithWhite:0.16 alpha:1.0]);
+}
+
+static UIColor *MRRPrimaryTextColor(void) {
+  return MRRNamedColor(@"TextPrimaryColor", [UIColor colorWithWhite:0.10 alpha:1.0], [UIColor colorWithWhite:0.96 alpha:1.0]);
+}
+
+static UIColor *MRRSecondaryTextColor(void) {
+  return MRRNamedColor(@"TextSecondaryColor", [UIColor colorWithWhite:0.42 alpha:1.0], [UIColor colorWithWhite:0.63 alpha:1.0]);
+}
+
 @interface OnboardingViewController () <UICollectionViewDataSource,
                                         UICollectionViewDelegate,
                                         UICollectionViewDelegateFlowLayout,
@@ -204,10 +220,7 @@ static UIColor *MRRNamedColor(NSString *name, UIColor *lightColor, UIColor *dark
   [super viewDidLoad];
 
   self.title = @"Onboarding";
-  if (@available(iOS 13.0, *)) {
-    self.overrideUserInterfaceStyle = UIUserInterfaceStyleDark;
-  }
-  self.view.backgroundColor = [UIColor colorWithRed:0.05 green:0.06 blue:0.08 alpha:1.0];
+  self.view.backgroundColor = MRRBackgroundSurfaceColor();
   self.view.tintColor = MRRNamedColor(@"AccentColor", [UIColor colorWithRed:0.89 green:0.46 blue:0.24 alpha:1.0],
                                       [UIColor colorWithRed:0.96 green:0.70 blue:0.47 alpha:1.0]);
   self.view.accessibilityIdentifier = @"onboarding.view";
@@ -251,23 +264,27 @@ static UIColor *MRRNamedColor(NSString *name, UIColor *lightColor, UIColor *dark
   scrollView.alwaysBounceVertical = YES;
   scrollView.showsVerticalScrollIndicator = NO;
   scrollView.backgroundColor = [UIColor clearColor];
+  scrollView.accessibilityIdentifier = @"onboarding.scrollView";
   [self.view addSubview:scrollView];
   self.scrollView = scrollView;
 
   UIView *contentView = [[[UIView alloc] init] autorelease];
   contentView.translatesAutoresizingMaskIntoConstraints = NO;
   contentView.backgroundColor = [UIColor clearColor];
+  contentView.accessibilityIdentifier = @"onboarding.contentView";
   [scrollView addSubview:contentView];
 
   UIStackView *stackView = [[[UIStackView alloc] init] autorelease];
   stackView.translatesAutoresizingMaskIntoConstraints = NO;
   stackView.axis = UILayoutConstraintAxisVertical;
   stackView.spacing = 18.0;
+  stackView.accessibilityIdentifier = @"onboarding.contentStackView";
   [contentView addSubview:stackView];
   self.contentStackView = stackView;
 
   UIView *iconWrapperView = [[[UIView alloc] init] autorelease];
   iconWrapperView.translatesAutoresizingMaskIntoConstraints = NO;
+  iconWrapperView.accessibilityIdentifier = @"onboarding.logoWrapperView";
   self.iconWrapperHeightConstraint = [iconWrapperView.heightAnchor constraintEqualToConstant:100.0];
   [NSLayoutConstraint activateConstraints:@[ self.iconWrapperHeightConstraint ]];
   [stackView addArrangedSubview:iconWrapperView];
@@ -276,9 +293,10 @@ static UIColor *MRRNamedColor(NSString *name, UIColor *lightColor, UIColor *dark
   iconContainerView.translatesAutoresizingMaskIntoConstraints = NO;
   iconContainerView.backgroundColor = [UIColor clearColor];
   iconContainerView.clipsToBounds = YES;
+  iconContainerView.accessibilityIdentifier = @"onboarding.logoContainerView";
   iconContainerView.layer.cornerRadius = 24.0;
   iconContainerView.layer.borderWidth = 1.0;
-  iconContainerView.layer.borderColor = [[UIColor colorWithWhite:1.0 alpha:0.12] CGColor];
+  iconContainerView.layer.borderColor = [[MRRPrimaryTextColor() colorWithAlphaComponent:0.12] CGColor];
   [iconWrapperView addSubview:iconContainerView];
   self.iconContainerView = iconContainerView;
 
@@ -310,7 +328,7 @@ static UIColor *MRRNamedColor(NSString *name, UIColor *lightColor, UIColor *dark
     self.iconImageHeightConstraint
   ]];
 
-  UILabel *titleLabel = [self labelWithText:@"Culina" font:[UIFont boldSystemFontOfSize:54.0] color:[UIColor colorWithWhite:0.97 alpha:1.0]];
+  UILabel *titleLabel = [self labelWithText:@"Culina" font:[UIFont boldSystemFontOfSize:54.0] color:MRRPrimaryTextColor()];
   titleLabel.textAlignment = NSTextAlignmentCenter;
   titleLabel.accessibilityIdentifier = @"onboarding.titleLabel";
   titleLabel.attributedText = [self titleAttributedTextWithFontSize:44.0 kerning:1.0];
@@ -319,7 +337,7 @@ static UIColor *MRRNamedColor(NSString *name, UIColor *lightColor, UIColor *dark
 
   UILabel *subtitleLabel = [self labelWithText:@"Discover. Cook. Savor."
                                           font:[UIFont systemFontOfSize:18.0 weight:UIFontWeightMedium]
-                                         color:[UIColor colorWithWhite:0.72 alpha:1.0]];
+                                         color:MRRSecondaryTextColor()];
   subtitleLabel.textAlignment = NSTextAlignmentCenter;
   subtitleLabel.numberOfLines = 0;
   subtitleLabel.accessibilityIdentifier = @"onboarding.subtitleLabel";
@@ -328,6 +346,7 @@ static UIColor *MRRNamedColor(NSString *name, UIColor *lightColor, UIColor *dark
 
   UIView *spacerView = [[[UIView alloc] init] autorelease];
   spacerView.translatesAutoresizingMaskIntoConstraints = NO;
+  spacerView.accessibilityIdentifier = @"onboarding.spacerView";
   [spacerView setContentCompressionResistancePriority:UILayoutPriorityDefaultLow forAxis:UILayoutConstraintAxisVertical];
   [spacerView setContentHuggingPriority:UILayoutPriorityDefaultLow forAxis:UILayoutConstraintAxisVertical];
   self.spacerHeightConstraint = [spacerView.heightAnchor constraintEqualToConstant:12.0];
@@ -337,7 +356,7 @@ static UIColor *MRRNamedColor(NSString *name, UIColor *lightColor, UIColor *dark
 
   UILabel *captionLabel = [self labelWithText:@"SWIPE TO EXPLORE RECIPES"
                                          font:[UIFont systemFontOfSize:15.0 weight:UIFontWeightMedium]
-                                        color:[UIColor colorWithWhite:0.50 alpha:1.0]];
+                                        color:MRRSecondaryTextColor()];
   captionLabel.textAlignment = NSTextAlignmentCenter;
   captionLabel.accessibilityIdentifier = @"onboarding.carouselCaptionLabel";
   captionLabel.attributedText = [self carouselCaptionAttributedTextWithFontSize:13.0 kerning:2.6];
@@ -347,7 +366,7 @@ static UIColor *MRRNamedColor(NSString *name, UIColor *lightColor, UIColor *dark
   UILabel *helperLabel = [self
       labelWithText:@"Auto-scroll keeps moving until you interact. Tap a card to inspect ingredients, steps, and the Start Cooking finish action."
                font:[UIFont systemFontOfSize:15.0]
-              color:[UIColor colorWithWhite:0.48 alpha:1.0]];
+              color:MRRSecondaryTextColor()];
   helperLabel.numberOfLines = 0;
   helperLabel.hidden = YES;
   helperLabel.accessibilityIdentifier = @"onboarding.carouselHelperLabel";
@@ -384,13 +403,13 @@ static UIColor *MRRNamedColor(NSString *name, UIColor *lightColor, UIColor *dark
   pageControl.accessibilityIdentifier = @"onboarding.pageControl";
   pageControl.currentPageIndicatorTintColor = MRRNamedColor(@"AccentColor", [UIColor colorWithRed:0.89 green:0.46 blue:0.24 alpha:1.0],
                                                             [UIColor colorWithRed:0.96 green:0.70 blue:0.47 alpha:1.0]);
-  pageControl.pageIndicatorTintColor = [[UIColor whiteColor] colorWithAlphaComponent:0.18];
+  pageControl.pageIndicatorTintColor = [MRRSecondaryTextColor() colorWithAlphaComponent:0.24];
   [stackView addArrangedSubview:pageControl];
   self.pageControl = pageControl;
 
   UILabel *benefitTitleLabel = [self labelWithText:@"All recipes at your fingertips"
                                               font:[UIFont boldSystemFontOfSize:28.0]
-                                             color:[UIColor colorWithWhite:0.97 alpha:1.0]];
+                                             color:MRRPrimaryTextColor()];
   benefitTitleLabel.textAlignment = NSTextAlignmentCenter;
   benefitTitleLabel.numberOfLines = 2;
   [benefitTitleLabel setContentCompressionResistancePriority:UILayoutPriorityRequired forAxis:UILayoutConstraintAxisVertical];
@@ -403,7 +422,7 @@ static UIColor *MRRNamedColor(NSString *name, UIColor *lightColor, UIColor *dark
 
   UILabel *benefitBodyLabel = [self labelWithText:@"Clear steps, simple ingredients, guaranteed delicious results."
                                              font:[UIFont systemFontOfSize:16.0]
-                                            color:[UIColor colorWithWhite:0.60 alpha:1.0]];
+                                            color:MRRSecondaryTextColor()];
   benefitBodyLabel.textAlignment = NSTextAlignmentCenter;
   benefitBodyLabel.numberOfLines = 0;
   [benefitBodyLabel setContentCompressionResistancePriority:UILayoutPriorityRequired forAxis:UILayoutConstraintAxisVertical];
@@ -444,7 +463,7 @@ static UIColor *MRRNamedColor(NSString *name, UIColor *lightColor, UIColor *dark
 
   UILabel *signinLabel = [self labelWithText:@"Already have an account? Sign in"
                                         font:[UIFont systemFontOfSize:16.0 weight:UIFontWeightMedium]
-                                       color:[UIColor colorWithWhite:0.70 alpha:1.0]];
+                                       color:MRRSecondaryTextColor()];
   signinLabel.textAlignment = NSTextAlignmentCenter;
   signinLabel.accessibilityIdentifier = @"onboarding.signinLabel";
   signinLabel.attributedText = [self signinAttributedTextWithBodyFontSize:15.0];
@@ -453,7 +472,7 @@ static UIColor *MRRNamedColor(NSString *name, UIColor *lightColor, UIColor *dark
 
   UILabel *footerLabel = [self labelWithText:@"Onboarding completes only after you tap Start Cooking inside a recipe detail card."
                                         font:[UIFont systemFontOfSize:15.0]
-                                       color:[UIColor colorWithWhite:0.48 alpha:1.0]];
+                                       color:MRRSecondaryTextColor()];
   footerLabel.numberOfLines = 0;
   footerLabel.hidden = YES;
   footerLabel.accessibilityIdentifier = @"onboarding.footerLabel";
@@ -497,11 +516,12 @@ static UIColor *MRRNamedColor(NSString *name, UIColor *lightColor, UIColor *dark
 
   UIView *pillView = [[[UIView alloc] init] autorelease];
   pillView.translatesAutoresizingMaskIntoConstraints = NO;
+  pillView.accessibilityIdentifier = [accessibilityIdentifier stringByAppendingString:@".pillView"];
   pillView.backgroundColor = [MRRNamedColor(@"AccentColor", [UIColor colorWithRed:0.89 green:0.46 blue:0.24 alpha:1.0],
                                             [UIColor colorWithRed:0.96 green:0.70 blue:0.47 alpha:1.0]) colorWithAlphaComponent:0.14];
   pillView.layer.cornerRadius = 16.0;
   pillView.layer.borderWidth = 1.0;
-  pillView.layer.borderColor = [[UIColor colorWithWhite:1.0 alpha:0.06] CGColor];
+  pillView.layer.borderColor = [[MRRPrimaryTextColor() colorWithAlphaComponent:0.08] CGColor];
   [containerView addSubview:pillView];
 
   UILabel *label = [self labelWithText:text
@@ -546,17 +566,18 @@ static UIColor *MRRNamedColor(NSString *name, UIColor *lightColor, UIColor *dark
   button.accessibilityIdentifier = accessibilityIdentifier;
   button.layer.cornerRadius = 18.0;
   button.layer.borderWidth = filledStyle ? 0.0 : 1.0;
-  button.layer.borderColor = [[UIColor colorWithWhite:1.0 alpha:0.12] CGColor];
+  button.layer.borderColor = [[MRRPrimaryTextColor() colorWithAlphaComponent:0.12] CGColor];
   button.layer.shadowColor = [UIColor blackColor].CGColor;
   button.layer.shadowOpacity = filledStyle ? 0.18f : 0.12f;
   button.layer.shadowRadius = filledStyle ? 18.0f : 12.0f;
   button.layer.shadowOffset = CGSizeMake(0.0, filledStyle ? 10.0 : 8.0);
-  button.backgroundColor = filledStyle ? [UIColor colorWithRed:0.98 green:0.95 blue:0.89 alpha:1.0] : [UIColor colorWithWhite:1.0 alpha:0.04];
+  button.backgroundColor = filledStyle ? MRRPrimaryTextColor() : MRRCardSurfaceColor();
   [button addTarget:self action:action forControlEvents:UIControlEventTouchUpInside];
 
   UIView *contentWrapper = [[[UIView alloc] init] autorelease];
   contentWrapper.translatesAutoresizingMaskIntoConstraints = NO;
   contentWrapper.userInteractionEnabled = NO;
+  contentWrapper.accessibilityIdentifier = [accessibilityIdentifier stringByAppendingString:@".contentWrapper"];
   [button addSubview:contentWrapper];
 
   UILabel *iconLabel = [[[UILabel alloc] init] autorelease];
@@ -565,7 +586,8 @@ static UIColor *MRRNamedColor(NSString *name, UIColor *lightColor, UIColor *dark
   iconLabel.text = iconText;
   iconLabel.textAlignment = NSTextAlignmentCenter;
   iconLabel.font = [UIFont systemFontOfSize:22.0 weight:UIFontWeightSemibold];
-  iconLabel.textColor = filledStyle ? [UIColor colorWithWhite:0.08 alpha:1.0] : [UIColor whiteColor];
+  iconLabel.accessibilityIdentifier = [accessibilityIdentifier stringByAppendingString:@".iconLabel"];
+  iconLabel.textColor = filledStyle ? MRRBackgroundSurfaceColor() : MRRPrimaryTextColor();
   [contentWrapper addSubview:iconLabel];
 
   UILabel *titleLabel = [[[UILabel alloc] init] autorelease];
@@ -573,7 +595,8 @@ static UIColor *MRRNamedColor(NSString *name, UIColor *lightColor, UIColor *dark
   titleLabel.tag = MRROnboardingAuthButtonTitleTag;
   titleLabel.text = title;
   titleLabel.font = [UIFont systemFontOfSize:20.0 weight:UIFontWeightSemibold];
-  titleLabel.textColor = filledStyle ? [UIColor colorWithWhite:0.08 alpha:1.0] : [UIColor colorWithWhite:0.97 alpha:1.0];
+  titleLabel.accessibilityIdentifier = [accessibilityIdentifier stringByAppendingString:@".titleLabel"];
+  titleLabel.textColor = filledStyle ? MRRBackgroundSurfaceColor() : MRRPrimaryTextColor();
   titleLabel.adjustsFontSizeToFitWidth = YES;
   titleLabel.minimumScaleFactor = 0.82;
   [contentWrapper addSubview:titleLabel];
@@ -598,22 +621,26 @@ static UIColor *MRRNamedColor(NSString *name, UIColor *lightColor, UIColor *dark
 - (UIView *)authDividerView {
   UIView *containerView = [[[UIView alloc] init] autorelease];
   containerView.translatesAutoresizingMaskIntoConstraints = NO;
+  containerView.accessibilityIdentifier = @"onboarding.authDividerView";
 
   UIView *leftLine = [[[UIView alloc] init] autorelease];
   leftLine.translatesAutoresizingMaskIntoConstraints = NO;
-  leftLine.backgroundColor = [UIColor colorWithWhite:1.0 alpha:0.10];
+  leftLine.accessibilityIdentifier = @"onboarding.authDividerView.leftLine";
+  leftLine.backgroundColor = [MRRSecondaryTextColor() colorWithAlphaComponent:0.24];
   [containerView addSubview:leftLine];
 
   UIView *rightLine = [[[UIView alloc] init] autorelease];
   rightLine.translatesAutoresizingMaskIntoConstraints = NO;
-  rightLine.backgroundColor = [UIColor colorWithWhite:1.0 alpha:0.10];
+  rightLine.accessibilityIdentifier = @"onboarding.authDividerView.rightLine";
+  rightLine.backgroundColor = [MRRSecondaryTextColor() colorWithAlphaComponent:0.24];
   [containerView addSubview:rightLine];
 
   UILabel *orLabel = [[[UILabel alloc] init] autorelease];
   orLabel.translatesAutoresizingMaskIntoConstraints = NO;
+  orLabel.accessibilityIdentifier = @"onboarding.authDividerView.label";
   orLabel.text = @"or";
   orLabel.font = [UIFont systemFontOfSize:16.0 weight:UIFontWeightMedium];
-  orLabel.textColor = [UIColor colorWithWhite:0.50 alpha:1.0];
+  orLabel.textColor = MRRSecondaryTextColor();
   [containerView addSubview:orLabel];
   self.authDividerLabel = orLabel;
 
@@ -824,7 +851,7 @@ static UIColor *MRRNamedColor(NSString *name, UIColor *lightColor, UIColor *dark
   return [[[NSAttributedString alloc] initWithString:@"Culina"
                                           attributes:@{
                                             NSKernAttributeName : @(kerning),
-                                            NSForegroundColorAttributeName : [UIColor colorWithWhite:0.97 alpha:1.0],
+                                            NSForegroundColorAttributeName : MRRPrimaryTextColor(),
                                             NSFontAttributeName : [UIFont boldSystemFontOfSize:fontSize]
                                           }] autorelease];
 }
@@ -833,7 +860,7 @@ static UIColor *MRRNamedColor(NSString *name, UIColor *lightColor, UIColor *dark
   return [[[NSAttributedString alloc] initWithString:@"SWIPE TO EXPLORE RECIPES"
                                           attributes:@{
                                             NSKernAttributeName : @(kerning),
-                                            NSForegroundColorAttributeName : [UIColor colorWithWhite:0.50 alpha:1.0],
+                                            NSForegroundColorAttributeName : MRRSecondaryTextColor(),
                                             NSFontAttributeName : [UIFont systemFontOfSize:fontSize weight:UIFontWeightMedium]
                                           }] autorelease];
 }
@@ -841,7 +868,7 @@ static UIColor *MRRNamedColor(NSString *name, UIColor *lightColor, UIColor *dark
 - (NSAttributedString *)signinAttributedTextWithBodyFontSize:(CGFloat)bodyFontSize {
   NSMutableAttributedString *signinText = [[[NSMutableAttributedString alloc] initWithString:@"Already have an account? Sign in"] autorelease];
   [signinText addAttributes:@{
-    NSForegroundColorAttributeName : [UIColor colorWithWhite:0.70 alpha:1.0],
+    NSForegroundColorAttributeName : MRRSecondaryTextColor(),
     NSFontAttributeName : [UIFont systemFontOfSize:bodyFontSize weight:UIFontWeightMedium]
   }
                       range:NSMakeRange(0, signinText.length)];
@@ -849,7 +876,7 @@ static UIColor *MRRNamedColor(NSString *name, UIColor *lightColor, UIColor *dark
   NSRange signInRange = [[signinText string] rangeOfString:@"Sign in"];
   if (signInRange.location != NSNotFound) {
     [signinText addAttributes:@{
-      NSForegroundColorAttributeName : [UIColor colorWithWhite:0.97 alpha:1.0],
+      NSForegroundColorAttributeName : MRRPrimaryTextColor(),
       NSFontAttributeName : [UIFont boldSystemFontOfSize:bodyFontSize]
     }
                         range:signInRange];
